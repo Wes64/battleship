@@ -14,12 +14,12 @@
  * @brief Enumeration of all ships
  *//*-----------------------------------------*/
 typedef enum {
-    EMPTY      = -1;
-    CARRIER    =  0;
-    BATTLESHIP =  1;
-    SUBMARINE  =  2;
-    CRUISER    =  3;
-    DESTROYER  =  4;
+    EMPTY      = -1,
+    CARRIER    =  0,
+    BATTLESHIP =  1,
+    SUBMARINE  =  2,
+    CRUISER    =  3,
+    DESTROYER  =  4,
 } Ship;
 
 // Macros

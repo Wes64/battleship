@@ -3,6 +3,9 @@
  * @brief Implementation of Battleship ship methods
  *//*=========================================================*/
 
+// Standard library
+#include <stdlib.h>
+
 // This project
 #include "ship.h"
 
@@ -38,7 +41,7 @@ int ship_GetLength(Ship ship) {
 /*============================================================*
  * Ship name
  *============================================================*/
-const char *ship_GetLength(Ship ship) {
+const char *ship_GetName(Ship ship) {
     // Get the ship length
     
     switch (ship) {
