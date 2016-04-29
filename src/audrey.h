@@ -18,9 +18,9 @@
  * @brief Audrey instance stats
  *//*-----------------------------------------*/
 typedef struct {
-    Field *field;
-    short turns;
-    short sink_turn[N_SHIPS];
+    Field field;
+    char turns;
+    char sink_turn[N_SHIPS];
 } Audrey;
 
 // Macros
@@ -33,7 +33,7 @@ typedef struct {
 /*-----------------------------------------*//**
  * @brief Audrey initialize
  *//*-----------------------------------------*/
-int audrey_Create(Audrey *audrey, const Field *field);
+int audrey_Create(Audrey *audrey, Field field);
 
 /*-----------------------------------------*//**
  * @brief Audrey play game
@@ -43,7 +43,7 @@ int audrey_Play(Audrey *audrey);
 /*-----------------------------------------*//**
  * @brief Audrey turn driver
  *//*-----------------------------------------*/
-int audrey_ChooseTurn(Audrey *audrey, int *out_x, int *out_y);
+int audrey_ChooseTurn(const Audrey *audrey, int *out_x, int *out_y);
 
 /*-----------------------------------------*//**
  * @brief Audrey deletion

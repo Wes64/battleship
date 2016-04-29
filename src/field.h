@@ -66,53 +66,53 @@ int field_Create(Field *field);
 /*-----------------------------------------*//**
  * @brief Clear a field
  *//*-----------------------------------------*/
-int field_Clear(Field *field);
+int field_Clear(Field field);
 
 /*-----------------------------------------*//**
  * @brief Load a random field
  *//*-----------------------------------------*/
-int field_LoadRandom(Field *field);
+int field_LoadRandom(Field field);
 
 /*-----------------------------------------*//**
  * @brief Place a ship
  *//*-----------------------------------------*/
-int field_PlaceShip(const Field *field, View dir, int x, int y, Ship ship);
+int field_PlaceShip(const Field field, View dir, int x, int y, Ship ship);
 
 /*-----------------------------------------*//**
  * @brief Ready the field for play
  *//*-----------------------------------------*/
-int field_ReadyPlay(Field *field);
+int field_ReadyPlay(Field field);
 
 /*-----------------------------------------*//**
  * @brief Destroy a Field
  *//*-----------------------------------------*/
-void field_Destroy(Field *field);
+void field_Destroy(Field field);
 
 /*-----------------------------------------*//**
  * @brief Check if the coordinates in bounds
  *//*-----------------------------------------*/
-int field_IsInBounds(const Field *field, int x, int y);
+int field_IsInBounds(const Field field, int x, int y);
 
 /*-----------------------------------------*//**
  * @brief Get the ships remaining
  *//*-----------------------------------------*/
-int field_GetShipsRemaining(const Field *field, char *out_info);
+int field_GetShipsRemaining(const Field field, char *out_info);
 
 /*-----------------------------------------*//**
  * @brief Get the amount of equal Entry
  * in the View direction from the given point
  *//*-----------------------------------------*/
-int field_GetExtent(const Field *field, View dir, int x, int y, Entry entry);
+int field_GetExtent(const Field field, View dir, int x, int y, Status status);
 
 /*-----------------------------------------*//**
  * @brief Make an attack on the field
  *//*-----------------------------------------*/
-int field_Attack(Field *field, int x, int y);
+int field_Attack(Field field, int x, int y);
 
 /*-----------------------------------------*//**
  * @brief Check if the field has been won
  *//*-----------------------------------------*/
-int field_Win(const Field *field);
+int field_Win(const Field field);
 
 /*============================================================*/
 #endif

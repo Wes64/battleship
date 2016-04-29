@@ -17,6 +17,7 @@ LDFLAGS := -g
 # File locations
 CFILES := $(wildcard $(SOURCE_DIR)/*.c)
 OBJFILES := $(addprefix $(OBJECT_DIR)/, $(subst $(SOURCE_DIR)/,,$(CFILES:.c=.o)))
+DEPFILES := $(OBJFILES:.o=.d)
 
 #===============================================================
 # Dependencies
@@ -41,6 +42,9 @@ $(OBJECT_DIR):
 # Make object files
 $(OBJECT_DIR)/%.o: $(SOURCE_DIR)/%.c $(OBJECT_DIR)
 	$(CC) $(CFLAGS) $(INCLUDE) -c -o $@ $<
+
+# Auto-generated dependencies
+-include $(DEPFILES)
 
 # Clean up
 .PHONY: clean
