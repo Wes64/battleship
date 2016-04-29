@@ -44,6 +44,7 @@ $(OBJECT_DIR)/%.o: $(SOURCE_DIR)/%.c $(OBJECT_DIR)
 
 # Clean up
 .PHONY: clean
+clean:
 	-rm -rf $(OBJECT_DIR) $(EXECUTABLE)
 
 #===============================================================
