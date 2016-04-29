@@ -41,7 +41,7 @@ int audrey_ChooseTurn(const Audrey *audrey, int *out_x, int *out_y) {
     
     // Get which ships are remaining
     char remaining[N_SHIPS];
-    intermediate(audrey->field, remaining);
+    field_GetShipsRemaining(audrey->field, remaining);
     
     // Get the maximum length remaining
     int ship_id=0, length_min=INT_MAX;

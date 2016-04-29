@@ -163,7 +163,7 @@ int field_IsInBounds(const Field field, int x, int y) {
 /*============================================================*
  * Field ships check
  *============================================================*/
-int field_ShipsRemaining(const Field field, char *out_info) {
+int field_GetShipsRemaining(const Field field, char *out_info) {
     // Assume out_info is a char[N_SHIPS]
     
     // Null pointer error
@@ -290,8 +290,8 @@ int field_Win(const Field field) {
     
     // Get which ships are remaining
     char remaining[N_SHIPS];
-    if (field_ShipsRemaining(field, remaining)) {
-        fprintf(stderr, "field_ShipsRemaining failed\n");
+    if (field_GetShipsRemaining(field, remaining)) {
+        fprintf(stderr, "field_GetShipsRemaining failed\n");
         return -1;
     }
     
