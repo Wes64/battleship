@@ -11,8 +11,8 @@ OBJECT_DIR := build
 
 # Compiler options
 CC := gcc
-CFLAGS := -g -O3 -Wall
-LDFLAGS := -g -MP -MMD
+CFLAGS := -g -O3 -Wall -MP -MMD
+LDFLAGS := -g
 
 # File locations
 CFILES := $(wildcard $(SOURCE_DIR)/*.c)
