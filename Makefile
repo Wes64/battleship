@@ -32,8 +32,6 @@ all: $(EXECUTABLE)
 
 # Make the executable program
 $(EXECUTABLE): $(OBJFILES)
-	echo $(CFILES)
-	echo $(OBJFILES)
 	$(CC) $(LDFLAGS) $(LINK_LIBS) $(OBJFILES) -o $@
 
 # Make build directory
