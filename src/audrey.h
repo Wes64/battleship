@@ -32,18 +32,22 @@ typedef struct {
 
 /*-----------------------------------------*//**
  * @brief Audrey initialize
+ * @param audrey        Instance to initialize
+ * @return 0 on success, else error code
  *//*-----------------------------------------*/
 int audrey_Create(Audrey *audrey);
 
 /*-----------------------------------------*//**
- * @brief Audrey play game
+ * @brief Play an entire game
+ * @param audrey        Instance to play
+ * @return 0 on success, else error code
  *//*-----------------------------------------*/
 int audrey_Play(Audrey *audrey);
 
 /*-----------------------------------------*//**
  * @brief Audrey turn driver
  *//*-----------------------------------------*/
-int audrey_ChooseTurn(const Audrey *audrey, int *out_x, int *out_y);
+int audrey_PlayTurn(Audrey *audrey);
 
 /*============================================================*/
 #endif

@@ -4,9 +4,9 @@
  *//*=========================================================*/
 
 // Standard library
-#include <stdio.h>
-#include <assert.h>
-#include <stdlib.h>
+#include <stdio.h>      // fprintf, stderr
+#include <assert.h>     // assert
+#include <stdlib.h>     // rand
 
 // This project
 #include "field.h"

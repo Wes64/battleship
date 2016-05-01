@@ -4,8 +4,9 @@
  *//*=========================================================*/
 
 // Standard library
-#include <limits.h> // INT_MAX
-#include <assert.h> // assert
+#include <stdio.h>      // fprintf, stderr
+#include <limits.h>     // INT_MAX
+#include <assert.h>     // assert
 
 // This project
 #include "audrey.h"
@@ -32,7 +33,7 @@ int audrey_Create(Audrey *audrey) {
 /*============================================================*
  * Turn chooser
  *============================================================*/
-int audrey_ChooseTurn(const Audrey *audrey, int *out_x, int *out_y) {
+int audrey_PlayTurn(Audrey *audrey) {
     // Choose which move to make
     
     // Get the maximum length remaining
@@ -86,9 +87,20 @@ int audrey_ChooseTurn(const Audrey *audrey, int *out_x, int *out_y) {
         }
     }
     
-    // Receive probability
-    *out_x = prob_x;
-    *out_y = prob_y;
+    // Make attack
+    field_Attack(&audrey->field, prob_x, prob_y);
+    int is_hit = audrey->field.entry[prob_x][prob_y].status == HIT;
+    
+    // Get the turn sunk for newly sunk ships
+    if (is_hit) {
+        Ship ship = audrey->field.entry[prob_x][prob_y].ship;
+        assert(ship >= 0);
+        audrey->sink_turn[ship] = audrey->turns;
+    }
+    
+    // Advance turn
+    audrey->turns++;
+    
     return 0;
 }
 
@@ -100,22 +112,10 @@ int audrey_Play(Audrey *audrey) {
     // Execute one game
     while (!field_Win(&audrey->field)) {
         // Get the current option
-        int x, y;
-        audrey_ChooseTurn(audrey, &x, &y);
-        
-        // Apply the hit
-        field_Attack(&audrey->field, x, y);
-        int is_hit = audrey->field.entry[x][y].status == HIT;
-        
-        // Get the turn sunk for newly sunk ships
-        if (is_hit) {
-            Ship ship = audrey->field.entry[x][y].ship;
-            assert(ship >= 0);
-            audrey->sink_turn[ship] = audrey->turns;
+        if (!audrey_PlayTurn(audrey)) {
+            fprintf(stderr, "audrey_ChooseTurn failed\n");
+            return -1;
         }
-        
-        // Advance turn
-        audrey->turns++;
     }
     
     // Success
