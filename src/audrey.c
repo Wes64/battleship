@@ -39,7 +39,7 @@ int audrey_PlayTurn(Audrey *audrey) {
     // Get the maximum length remaining
     int ship_id = 0, length_min = INT_MAX;
     while (ship_id < N_SHIPS) {
-        if (audrey->field.ship_health[ship_id]) {
+        if (audrey->field.ship_health[ship_id] > 0) {
             int temp = ship_GetLength(ship_id);
             length_min = (temp < length_min)? temp: length_min;
         }
@@ -60,25 +60,26 @@ int audrey_PlayTurn(Audrey *audrey) {
             }
 
             // Calculate the probability here
-            int view_left = field_GetExtent(&audrey->field, LEFT, x, y, UNTRIED);
+            int view_left  = field_GetExtent(&audrey->field, LEFT,  x, y, UNTRIED);
             int view_right = field_GetExtent(&audrey->field, RIGHT, x, y, UNTRIED);
-            int view_up = field_GetExtent(&audrey->field, UP, x, y, UNTRIED);
-            int view_down = field_GetExtent(&audrey->field, DOWN, x, y, UNTRIED);
+            int view_up    = field_GetExtent(&audrey->field, UP,    x, y, UNTRIED);
+            int view_down  = field_GetExtent(&audrey->field, DOWN,  x, y, UNTRIED);
 
             // Calculate the audrey->field hits nearby
             int nearby = 0;
-            nearby += field_GetExtent(&audrey->field, LEFT, x, y, HIT);
+            nearby += field_GetExtent(&audrey->field, LEFT,  x, y, HIT);
             nearby += field_GetExtent(&audrey->field, RIGHT, x, y, HIT);
-            nearby += field_GetExtent(&audrey->field, UP, x, y, HIT);
-            nearby += field_GetExtent(&audrey->field, DOWN, x, y, HIT);
+            nearby += field_GetExtent(&audrey->field, UP,    x, y, HIT);
+            nearby += field_GetExtent(&audrey->field, DOWN,  x, y, HIT);
             
             // View is blocked when total distance is less than the length of the
             // smallest ship
             int prob;
-            if ((view_right+view_left < length_min) && (view_up+view_down < length_min)) {
+            if (((view_right+view_left) < (length_min-nearby)) && ((view_up+view_down) < (length_min-nearby))) {
                 prob = 0;
+
             } else {
-                prob = (view_left*view_right) + (view_up*view_down);
+                prob = ((1+view_left)*(1+view_right)) + ((1+view_up)*(1+view_down));
                 // Nearness weight
                 prob += nearby*HIT_WEIGHT;
                 assert(prob > 0);
@@ -95,12 +96,14 @@ int audrey_PlayTurn(Audrey *audrey) {
     }
     assert(prob_max >= 0);
     assert(audrey->field.entry[prob_x][prob_y].status == UNTRIED);
-    
+
     // Make attack
     if (field_Attack(&audrey->field, prob_x, prob_y)) {
         fprintf(stderr, "field_Attack at (%d, %d) failed\n", prob_x, prob_y);
         return -1;
     }
+    assert(audrey->field.entry[prob_x][prob_y].status != UNTRIED);
+
     int is_hit = audrey->field.entry[prob_x][prob_y].status == HIT;
     
     // Get the turn sunk for newly sunk ships
@@ -111,10 +114,11 @@ int audrey_PlayTurn(Audrey *audrey) {
     }
     
     // Advance turn
-    audrey->turns++;
     if (audrey->turns > TURN_MAX) {
+        fprintf(stderr, "Turn overflow\n");
         return -1;
     }
+    audrey->turns++;
     
     return 0;
 }
@@ -131,8 +135,6 @@ int audrey_Play(Audrey *audrey) {
             fprintf(stderr, "audrey_PlayTurn failed\n");
             return -1;
         }
-        printf("Health %d, %d, %d, %d, %d\n", audrey->field.ship_health[0], audrey->field.ship_health[1], audrey->field.ship_health[2], audrey->field.ship_health[3], audrey->field.ship_health[4]);
-        printf("Turn %d\n", audrey->turns);
     }
     
     // Offset for advanced turn

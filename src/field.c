@@ -27,6 +27,7 @@ int view_GetVector(View dir, int *out_di, int *out_dj) {
     }
     
     // Failure
+    fprintf(stderr, "view_GetVector: no output parameters\n");
     return -1;
 }
 
@@ -36,6 +37,7 @@ int view_GetVector(View dir, int *out_di, int *out_dj) {
 int field_Clear(Field *field) {
     // Wipe all squares in the field
     if (!field) {
+        fprintf(stderr, "field_Clear: invalid field\n");
         return -1;
     }
     
@@ -131,6 +133,7 @@ int field_GetExtent(const Field *field, View dir, int x, int y, Status status) {
     
     if (!field_IsInBounds(field, x, y)) {
         // Error, not in bounds whatsoever
+        fprintf(stderr, "field_GetExtent: out of bounds\n");
         return -1;
     }
     
@@ -207,9 +210,11 @@ int field_Attack(Field *field, int x, int y) {
     // Attack the UNTRIED square
     if (!field_IsInBounds(field, x, y)) {
         // Out of bounds
+        fprintf(stderr, "field_Attack: out of bounds\n");
         return -1;
     } else if (field->entry[x][y].status != UNTRIED) {
         // Already tried this square
+        fprintf(stderr, "field_Attack: double attack\n");
         return -1;
     }
     
