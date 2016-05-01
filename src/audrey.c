@@ -37,12 +37,13 @@ int audrey_PlayTurn(Audrey *audrey) {
     // Choose which move to make
     
     // Get the maximum length remaining
-    int ship_id=0, length_min=INT_MAX;
+    int ship_id = 0, length_min = INT_MAX;
     while (ship_id < N_SHIPS) {
         if (audrey->field.ship_health[ship_id]) {
             int temp = ship_GetLength(ship_id);
             length_min = (temp < length_min)? temp: length_min;
         }
+        ship_id++;
     }
     
     // Get probability maximum
@@ -113,7 +114,7 @@ int audrey_Play(Audrey *audrey) {
     while (!field_Win(&audrey->field)) {
         // Get the current option
         if (!audrey_PlayTurn(audrey)) {
-            fprintf(stderr, "audrey_ChooseTurn failed\n");
+            fprintf(stderr, "audrey_PlayTurn failed\n");
             return -1;
         }
     }
