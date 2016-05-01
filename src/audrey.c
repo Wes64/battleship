@@ -5,6 +5,7 @@
 
 // Standard library
 #include <limits.h> // INT_MAX
+#include <assert.h> // assert
 
 // This project
 #include "audrey.h"
@@ -14,16 +15,11 @@
 /*============================================================*
  * Initialization
  *============================================================*/
-int audrey_Create(Audrey *audrey, Field field) {
+int audrey_Create(Audrey *audrey) {
     // Initialize this instance of Audrey
     
-    // Null pointer exception
-    if (!field || !audrey) {
-        return -1;
-    }
-    
     // Setup
-    audrey->field = field;
+    field_Clear(&audrey->field);
     audrey->turns = 1;
     
     int i = 0;
@@ -39,14 +35,10 @@ int audrey_Create(Audrey *audrey, Field field) {
 int audrey_ChooseTurn(const Audrey *audrey, int *out_x, int *out_y) {
     // Choose which move to make
     
-    // Get which ships are remaining
-    char remaining[N_SHIPS];
-    field_GetShipsRemaining(audrey->field, remaining);
-    
     // Get the maximum length remaining
     int ship_id=0, length_min=INT_MAX;
     while (ship_id < N_SHIPS) {
-        if (remaining[ship_id]) {
+        if (audrey->field.ship_health[ship_id]) {
             int temp = ship_GetLength(ship_id);
             length_min = (temp < length_min)? temp: length_min;
         }
@@ -61,17 +53,17 @@ int audrey_ChooseTurn(const Audrey *audrey, int *out_x, int *out_y) {
     for (x=0; x<FIELD_SIZE; x++) {
         for (y=0; y<FIELD_SIZE; y++) {
             // Calculate the probability here
-            int view_left = field_GetExtent(audrey->field, LEFT, x, y, UNTRIED);
-            int view_right = field_GetExtent(audrey->field, RIGHT, x, y, UNTRIED);
-            int view_up = field_GetExtent(audrey->field, UP, x, y, UNTRIED);
-            int view_down = field_GetExtent(audrey->field, DOWN, x, y, UNTRIED);
+            int view_left = field_GetExtent(&audrey->field, LEFT, x, y, UNTRIED);
+            int view_right = field_GetExtent(&audrey->field, RIGHT, x, y, UNTRIED);
+            int view_up = field_GetExtent(&audrey->field, UP, x, y, UNTRIED);
+            int view_down = field_GetExtent(&audrey->field, DOWN, x, y, UNTRIED);
             
             // Calculate the audrey->field hits nearby
             int nearby=0;
-            nearby += field_GetExtent(audrey->field, LEFT, x, y, HIT);
-            nearby += field_GetExtent(audrey->field, RIGHT, x, y, HIT);
-            nearby += field_GetExtent(audrey->field, UP, x, y, HIT);
-            nearby += field_GetExtent(audrey->field, DOWN, x, y, HIT);
+            nearby += field_GetExtent(&audrey->field, LEFT, x, y, HIT);
+            nearby += field_GetExtent(&audrey->field, RIGHT, x, y, HIT);
+            nearby += field_GetExtent(&audrey->field, UP, x, y, HIT);
+            nearby += field_GetExtent(&audrey->field, DOWN, x, y, HIT);
             
             // View is blocked when total distance is less than the length of the
             // smallest ship
@@ -104,30 +96,22 @@ int audrey_ChooseTurn(const Audrey *audrey, int *out_x, int *out_y) {
  * Game driver
  *============================================================*/
 int audrey_Play(Audrey *audrey) {
+    
     // Execute one game
-    
-    // Output for ship info
-    char initial_info[N_SHIPS], final_info[N_SHIPS];
-    
-    // Main loop
-    while (!field_Win(audrey->field)) {
+    while (!field_Win(&audrey->field)) {
         // Get the current option
         int x, y;
         audrey_ChooseTurn(audrey, &x, &y);
         
         // Apply the hit
-        field_GetShipsRemaining(audrey->field, initial_info);
-        field_Attack(audrey->field, x, y);
-        field_GetShipsRemaining(audrey->field, final_info);
+        field_Attack(&audrey->field, x, y);
+        int is_hit = audrey->field.entry[x][y].status == HIT;
         
         // Get the turn sunk for newly sunk ships
-        int i = 0;
-        while (i < N_SHIPS) {
-            if (initial_info[i] == 1 && final_info[i] == 0) {
-                audrey->sink_turn[i] = audrey->turns;
-             
-            }
-            i++;
+        if (is_hit) {
+            Ship ship = audrey->field.entry[x][y].ship;
+            assert(ship >= 0);
+            audrey->sink_turn[ship] = audrey->turns;
         }
         
         // Advance turn
@@ -136,14 +120,6 @@ int audrey_Play(Audrey *audrey) {
     
     // Success
     return 0;
-}
-
-/*============================================================*
- * Destructor
- *============================================================*/
-void audrey_Destroy(Audrey *audrey) {
-    // Destroy the field only
-    field_Destroy(audrey->field);
 }
 
 /*============================================================*/

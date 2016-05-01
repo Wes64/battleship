@@ -33,7 +33,7 @@ typedef struct {
 /*-----------------------------------------*//**
  * @brief Audrey initialize
  *//*-----------------------------------------*/
-int audrey_Create(Audrey *audrey, Field field);
+int audrey_Create(Audrey *audrey);
 
 /*-----------------------------------------*//**
  * @brief Audrey play game
@@ -44,11 +44,6 @@ int audrey_Play(Audrey *audrey);
  * @brief Audrey turn driver
  *//*-----------------------------------------*/
 int audrey_ChooseTurn(const Audrey *audrey, int *out_x, int *out_y);
-
-/*-----------------------------------------*//**
- * @brief Audrey deletion
- *//*-----------------------------------------*/
-void audrey_Destroy(Audrey *audrey);
 
 /*============================================================*/
 #endif
