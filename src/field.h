@@ -24,6 +24,7 @@ typedef enum {
     UNTRIED,
     MISS,
     HIT,
+    SUNK,
 } Status;
 
 /*-----------------------------------------*//**

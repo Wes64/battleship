@@ -126,10 +126,26 @@ int main(int argc, char *argv[]) {
     
     int i = 0;
     while (i++ < num_games) {
-        if (audrey_Create(&player) || audrey_Play(&player)) {
-            // Audrey error
+        if (audrey_Create(&player)) {
+            fprintf(stderr, "audrey_Create failed\n");
             return -1;
         }
+
+        if (field_LoadRandom(&player.field)) {
+            fprintf(stderr, "field_LoadRandom failed\n");
+            return -1;
+        }
+
+        if (field_ReadyPlay(&player.field)) {
+            fprintf(stderr, "field_ReadyPlay failed\n");
+            return -1;
+        }
+
+        if (audrey_Play(&player)) {
+            fprintf(stderr, "audrey_Play failed\n");
+            return -1;
+        }
+
         // Log message
         log_PrintGame(&player);
     }

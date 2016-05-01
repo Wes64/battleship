@@ -54,14 +54,19 @@ int audrey_PlayTurn(Audrey *audrey) {
     int x, y;
     for (x=0; x<FIELD_SIZE; x++) {
         for (y=0; y<FIELD_SIZE; y++) {
+            // Already tried
+            if (audrey->field.entry[x][y].status != UNTRIED) {
+                continue;
+            }
+
             // Calculate the probability here
             int view_left = field_GetExtent(&audrey->field, LEFT, x, y, UNTRIED);
             int view_right = field_GetExtent(&audrey->field, RIGHT, x, y, UNTRIED);
             int view_up = field_GetExtent(&audrey->field, UP, x, y, UNTRIED);
             int view_down = field_GetExtent(&audrey->field, DOWN, x, y, UNTRIED);
-            
+
             // Calculate the audrey->field hits nearby
-            int nearby=0;
+            int nearby = 0;
             nearby += field_GetExtent(&audrey->field, LEFT, x, y, HIT);
             nearby += field_GetExtent(&audrey->field, RIGHT, x, y, HIT);
             nearby += field_GetExtent(&audrey->field, UP, x, y, HIT);
@@ -70,14 +75,15 @@ int audrey_PlayTurn(Audrey *audrey) {
             // View is blocked when total distance is less than the length of the
             // smallest ship
             int prob;
-            // TODO verify this works without doing min-nearby
             if ((view_right+view_left < length_min) && (view_up+view_down < length_min)) {
                 prob = 0;
             } else {
                 prob = (view_left*view_right) + (view_up*view_down);
                 // Nearness weight
-                prob += (nearby - 4)*HIT_WEIGHT;
+                prob += nearby*HIT_WEIGHT;
+                assert(prob > 0);
             }
+            assert(prob >= 0);
             
             // Check probability maximum
             if (prob > prob_max) {
@@ -87,9 +93,14 @@ int audrey_PlayTurn(Audrey *audrey) {
             }
         }
     }
+    assert(prob_max >= 0);
+    assert(audrey->field.entry[prob_x][prob_y].status == UNTRIED);
     
     // Make attack
-    field_Attack(&audrey->field, prob_x, prob_y);
+    if (field_Attack(&audrey->field, prob_x, prob_y)) {
+        fprintf(stderr, "field_Attack at (%d, %d) failed\n", prob_x, prob_y);
+        return -1;
+    }
     int is_hit = audrey->field.entry[prob_x][prob_y].status == HIT;
     
     // Get the turn sunk for newly sunk ships
@@ -101,6 +112,9 @@ int audrey_PlayTurn(Audrey *audrey) {
     
     // Advance turn
     audrey->turns++;
+    if (audrey->turns > TURN_MAX) {
+        return -1;
+    }
     
     return 0;
 }
@@ -113,10 +127,12 @@ int audrey_Play(Audrey *audrey) {
     // Execute one game
     while (!field_Win(&audrey->field)) {
         // Get the current option
-        if (!audrey_PlayTurn(audrey)) {
+        if (audrey_PlayTurn(audrey)) {
             fprintf(stderr, "audrey_PlayTurn failed\n");
             return -1;
         }
+        printf("Health %d, %d, %d, %d, %d\n", audrey->field.ship_health[0], audrey->field.ship_health[1], audrey->field.ship_health[2], audrey->field.ship_health[3], audrey->field.ship_health[4]);
+        printf("Turn %d\n", audrey->turns);
     }
     
     // Offset for advanced turn

@@ -24,6 +24,7 @@ typedef struct {
 } Audrey;
 
 // Macros
+#define TURN_MAX (FIELD_SIZE*FIELD_SIZE)
 #define HIT_WEIGHT (FIELD_SIZE*FIELD_SIZE)
 
 /*============================================================*

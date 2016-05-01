@@ -147,7 +147,9 @@ int field_GetExtent(const Field *field, View dir, int x, int y, Status status) {
     // Get horizontal distance to an obstruction
     int i=x, j=y;
     while (field_IsInBounds(field, i, j) && status == field->entry[i][j].status) {
-        i+=di, j+=dj, distance++;
+        i += di;
+        j += dj;
+        distance++;
     }
     
     // Done (gurantee >= 0)
@@ -222,6 +224,18 @@ int field_Attack(Field *field, int x, int y) {
         field->ship_health[ship]--;
         assert(field->ship_health[ship] >= 0);
     }
+
+    // Sink ship
+    if (field->ship_health[ship] == 0) {
+        int x, y;
+        for (x=0; x < FIELD_SIZE; x++) {
+            for (y=0; y < FIELD_SIZE; y++) {
+                if (field->entry[x][y].ship == ship) {
+                    field->entry[x][y].status = SUNK;
+                }
+            }
+        }
+    }
     
     return 0;
 }
@@ -235,9 +249,10 @@ int field_Win(const Field *field) {
     // Get the maximum length remaining
     int ship_id = 0;
     while (ship_id < N_SHIPS) {
-        if (field->ship_health[ship_id]) {
+        if (field->ship_health[ship_id] > 0) {
             return 0;
         }
+        ship_id++;
     }
     
     // No ships remain
