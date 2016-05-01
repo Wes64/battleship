@@ -66,11 +66,20 @@ int audrey_PlayTurn(Audrey *audrey) {
             int view_down  = field_GetExtent(&audrey->field, DOWN,  x, y, UNTRIED);
 
             // Calculate the audrey->field hits nearby
-            int nearby = 0;
-            nearby += field_GetExtent(&audrey->field, LEFT,  x, y, HIT);
-            nearby += field_GetExtent(&audrey->field, RIGHT, x, y, HIT);
-            nearby += field_GetExtent(&audrey->field, UP,    x, y, HIT);
-            nearby += field_GetExtent(&audrey->field, DOWN,  x, y, HIT);
+            int nearby = 0, temp;
+            
+            if ((temp = field_GetExtent(&audrey->field, LEFT, x-1, y, HIT)) > 0) {
+                nearby += temp;
+            }
+            if ((temp = field_GetExtent(&audrey->field, RIGHT, x+1, y, HIT)) > 0) {
+                nearby += temp;
+            }
+            if ((temp = field_GetExtent(&audrey->field, UP, x, y-1, HIT)) > 0) {
+                nearby += temp;
+            }
+            if ((temp = field_GetExtent(&audrey->field, DOWN, x, y-1, HIT)) > 0) {
+                nearby += temp;
+            }
             
             // View is blocked when total distance is less than the length of the
             // smallest ship
@@ -135,6 +144,9 @@ int audrey_Play(Audrey *audrey) {
             fprintf(stderr, "audrey_PlayTurn failed\n");
             return -1;
         }
+        fprintf(stdout, "Turn %d\n", audrey->turns);
+        field_Print(&audrey->field, stdout);
+        fprintf(stdout, "\n");
     }
     
     // Offset for advanced turn

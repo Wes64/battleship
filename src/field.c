@@ -4,13 +4,48 @@
  *//*=========================================================*/
 
 // Standard library
-#include <stdio.h>      // fprintf, stderr
+#include <stdio.h>      // fprintf, stderr, FILE
 #include <assert.h>     // assert
 #include <stdlib.h>     // rand
 
 // This project
 #include "field.h"
 #include "ship.h"
+
+/*============================================================*
+ * Printing field
+ *============================================================*/
+void field_Print(const Field *field, FILE *file) {
+    // Print the field
+    int x, y;
+    for (x=0; x < FIELD_SIZE; x++) {
+        for (y=0; y < FIELD_SIZE; y++) {
+            switch (field->entry[x][y].status) {
+            case UNTRIED:
+                fprintf(file, ".");
+                break;
+                
+            case MISS:
+                fprintf(file, "X");
+                break;
+            
+            case HIT:
+                fprintf(file, "O");
+                break;
+            
+            case SUNK:
+                fprintf(file, "S");
+                break;
+                
+             
+             default:
+                fprintf(file, "?");
+                break;
+            }
+        }
+        fprintf(file, "\n");
+    }
+}
 
 /*============================================================*
  * View vector

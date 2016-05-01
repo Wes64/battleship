@@ -6,6 +6,9 @@
 #ifndef _FIELD_H_
 #define _FIELD_H_
 
+// Standard library
+#include <stdio.h>      // FILE
+
 // This project
 #include "ship.h"
 
@@ -143,6 +146,12 @@ int field_Attack(Field *field, int x, int y);
  * @return 1 is true, 0 is false
  *//*-----------------------------------------*/
 int field_Win(const Field *field);
+
+/*-----------------------------------------*//**
+ * @brief Print the field on the terminal
+ * @param field     Field to check
+ *//*-----------------------------------------*/
+void field_Print(const Field *field, FILE *file);
 
 /*============================================================*/
 #endif
