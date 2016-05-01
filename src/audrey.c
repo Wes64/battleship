@@ -118,6 +118,9 @@ int audrey_Play(Audrey *audrey) {
         }
     }
     
+    // Offset for advanced turn
+    audrey->turns--;
+    
     // Success
     return 0;
 }
