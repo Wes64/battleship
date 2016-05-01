@@ -139,7 +139,7 @@ int field_GetExtent(const Field *field, View dir, int x, int y, Status status) {
     
     // Steps
     int di, dj;
-    if (!view_GetVector(dir, &di, &dj)) {
+    if (view_GetVector(dir, &di, &dj)) {
         fprintf(stderr, "view_GetVector failed\n");
         return -1;
     }
@@ -169,7 +169,7 @@ int field_PlaceShip(Field *field, View view, int x, int y, Ship ship_id) {
     
     // Steps
     int di, dj;
-    if (!view_GetVector(view, &di, &dj)) {
+    if (view_GetVector(view, &di, &dj)) {
         fprintf(stderr, "view_GetVector failed\n");
         return -1;
     }
