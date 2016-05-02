@@ -4,7 +4,7 @@
  *//*=========================================================*/
 
 // Standard library
-#include <stdlib.h>
+#include <stdlib.h>     // NULL
 
 // This project
 #include "ship.h"

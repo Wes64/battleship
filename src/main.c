@@ -4,7 +4,7 @@
  *//*=========================================================*/
 
 // Standard library
-#include <stdio.h>      // fprintf, stderr, sscanf
+#include <stdio.h>      // fprintf, stderr, sscanf, FILE
 #include <string.h>     // strcmp
 
 // This project

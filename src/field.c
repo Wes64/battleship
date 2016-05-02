@@ -155,6 +155,7 @@ int field_ReadyPlay(Field *field) {
 int field_IsInBounds(const Field *field, int x, int y) {
     // Check if the coordinates are in bounds
     // Don't need the field pointer, just included for uniformity
+    (void)field;
     
     // Bounds check
     return ((0 <= x) && (x < FIELD_SIZE)) && ((0 <= y) && (y < FIELD_SIZE));

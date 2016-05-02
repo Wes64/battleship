@@ -32,14 +32,14 @@ typedef enum {
 /*-----------------------------------------*//**
  * @brief Get the name of a Ship
  * @param ship      The ship to name
- * @return The ship's name
+ * @return The ship's name or NULL on failure
  *//*-----------------------------------------*/
 const char *ship_GetName(Ship ship);
 
 /*-----------------------------------------*//**
  * @brief Get the length of a Ship
  * @param ship      The ship to examine
- * @return The ship's length
+ * @return The ship's length or -1 on failure
  *//*-----------------------------------------*/
 int ship_GetLength(Ship ship);
 
