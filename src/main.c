@@ -7,20 +7,20 @@
 #include <stdio.h>      // fprintf, stderr, sscanf, FILE
 #include <string.h>     // strcmp
 #include <stdlib.h>     // NULL
-#include <unistd.h>     // mkdir
-#include <sys/stat.h>   // stat, S_ISDIR
 #include <errno.h>      // errno
 #include <assert.h>     // assert
 
-// Windows / linux
+// Windows (MinGW) / linux
+#include <unistd.h>     // mkdir
+
 #ifdef _WIN32
 #define SEP "\\"
 
-#else
+#else   // !_WIN32
 #define SEP "/"
 #define mkdir(dir) mkdir(dir, 0766)
 
-#endif
+#endif  // _WIN32
 
 // This project
 #include "audrey.h"
@@ -34,6 +34,20 @@
 static int num_games = 1;
 static FILE *log = NULL;
 static const char *dir_name = NULL;
+
+/*=========================================================*//**
+ * @brief Print the help screen
+ *//*=========================================================*/
+void help(void) {
+    // Output options and help
+    printf(
+        "Battleship usage:\n"
+        "-d <name>:\tWrite game information to the directory\n"
+        "-l <name>:\tWrite CSV data to the filename\n"
+        "-n <int>:\tPlay this number of games\n"
+        "-h:\t\tPrint the help screen\n"
+    );
+}
 
 /*=========================================================*//**
  * @brief Parser for command-line arguments
@@ -57,11 +71,11 @@ int parse(int argc, char *argv[]) {
         } else if (!strcmp(keyword, "-n")) {
             // Set the number of games
             if (sscanf(argv[i++], "%d", &num_games) < 1) {
-                fprintf(stderr, "-n: Invalid argument\n");
+                fprintf(stderr, "-l: Invalid argument\n");
                 return -1;
             }
         
-        } else if (!strcmp(keyword, "-o")) {
+        } else if (!strcmp(keyword, "-l")) {
             // Close the old log
             if (log && !fclose(log)) {
                 fprintf(stderr, "-o: Failed to close file\n");
@@ -70,6 +84,10 @@ int parse(int argc, char *argv[]) {
             
             // Open new log
             log = fopen(argv[i++], "w");
+            
+        } else if (!strcmp(keyword, "-h")) {
+            // Print help
+            return -1;
         
         } else {
             // Invalid keyword
@@ -100,6 +118,7 @@ int main(int argc, char *argv[]) {
     
     // Parse arguments
     if (parse(argc, argv)) {
+        help();
         return -1;
     }
     

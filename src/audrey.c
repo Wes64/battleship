@@ -141,6 +141,7 @@ int audrey_Play(Audrey *audrey, FILE *output) {
     if (output) {
         fprintf(output, "===== Ship configuration =====\n");
         field_PrintShips(&audrey->field, output);
+        fprintf(output, "\n");
     }
     
     // Execute one game
@@ -155,6 +156,7 @@ int audrey_Play(Audrey *audrey, FILE *output) {
         if (output) {
             fprintf(output, "===== Turn %d status =====\n", audrey->turns);
             field_PrintStatus(&audrey->field, output);
+            fprintf(output, "\n");
         }
     }
     
