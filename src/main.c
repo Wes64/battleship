@@ -6,6 +6,21 @@
 // Standard library
 #include <stdio.h>      // fprintf, stderr, sscanf, FILE
 #include <string.h>     // strcmp
+#include <stdlib.h>     // NULL
+#include <unistd.h>     // mkdir
+#include <sys/stat.h>   // stat, S_ISDIR
+#include <errno.h>      // errno
+#include <assert.h>     // assert
+
+// Windows / linux
+#ifdef _WIN32
+#define SEP "\\"
+
+#else
+#define SEP "/"
+#define mkdir(dir) mkdir(dir, 0766)
+
+#endif
 
 // This project
 #include "audrey.h"
@@ -16,9 +31,9 @@
  *============================================================*/
 
 // Configuration
-static int verbose = 0;
 static int num_games = 1;
 static FILE *log = NULL;
+static const char *dir_name = NULL;
 
 /*=========================================================*//**
  * @brief Parser for command-line arguments
@@ -35,9 +50,9 @@ int parse(int argc, char *argv[]) {
         const char *keyword = argv[i++];
         
         // Parse keyword meaning
-        if (!strcmp(keyword, "-v")) {
-            // Set the verbose flag
-            verbose = 1;
+        if (!strcmp(keyword, "-d")) {
+            // Set the verbose directory flag
+            dir_name = argv[i++];
         
         } else if (!strcmp(keyword, "-n")) {
             // Set the number of games
@@ -63,44 +78,14 @@ int parse(int argc, char *argv[]) {
         }
     }
     
+    // Make the directory
+    if (mkdir(dir_name) == -1 && errno != EEXIST) {
+        fprintf(stderr, "Cannot make output directory\n");
+        dir_name = NULL;
+        return -1;
+    }
+    
     // Success
-    return 0;
-}
-
-/*=========================================================*//**
- * @brief Log a single game in the output log in CSv format
- * @param audrey        Game result to log
- * @return 0 on success, else error code
- *//*=========================================================*/
-int log_PrintGame(const Audrey *audrey) {
-    // Log a single game
-    
-    if (!log) {
-        return -1;
-    }
-    
-    fprintf(log, "%d,%d,%d,%d,%d,%d\n",
-        audrey->turns,
-        audrey->sink_turn[CARRIER],
-        audrey->sink_turn[BATTLESHIP],
-        audrey->sink_turn[SUBMARINE],
-        audrey->sink_turn[CRUISER],
-        audrey->sink_turn[DESTROYER]
-    );
-    return 0;
-}
-
-/*=========================================================*//**
- * @brief Print the CSV header into the log file
- * @return 0 on success, else error code
- *//*=========================================================*/
-int log_PrintHeader(void) {
-    // Print the CSV header into the log
-    if (!log) {
-        return -1;
-    }
-    
-    fprintf(log, "Turn,Carrier,Battleship,Submarine,Cruiser,Destroyer\n");
     return 0;
 }
 
@@ -119,7 +104,9 @@ int main(int argc, char *argv[]) {
     }
     
     // Set up the log
-    log_PrintHeader();
+    if (log) {
+        fprintf(log, "Turn,Carrier,Battleship,Submarine,Cruiser,Destroyer\n");
+    }
     
     // Play games
     Audrey player;
@@ -140,15 +127,40 @@ int main(int argc, char *argv[]) {
             fprintf(stderr, "field_ReadyPlay failed\n");
             return -1;
         }
+        
+        // Log individual game in the directory
+        FILE *game;
+        const int BUF_SIZE = 1024;
+        char filename[BUF_SIZE];
+        
+        if (dir_name) {
+            // Generate log file name
+            sprintf(filename, "%s%sgame%d.log", dir_name, SEP, i);
+            game = fopen(filename, "w");
+        } else {
+            game = NULL;
+        }
 
-        if (audrey_Play(&player)) {
+        if (audrey_Play(&player, game)) {
             fprintf(stderr, "audrey_Play failed\n");
             return -1;
         }
 
-        // Log message
-        log_PrintGame(&player);
+        // Log each game as csv
+        if (log) {
+            fprintf(log, "%d,%d,%d,%d,%d,%d\n",
+                player.turns,
+                player.sink_turn[CARRIER],
+                player.sink_turn[BATTLESHIP],
+                player.sink_turn[SUBMARINE],
+                player.sink_turn[CRUISER],
+                player.sink_turn[DESTROYER]
+            );
+        }
     }
+    
+    // Flush logged output
+    fflush(log);
 
     // Done
     return 0;

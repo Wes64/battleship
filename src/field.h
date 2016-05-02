@@ -148,10 +148,18 @@ int field_Attack(Field *field, int x, int y);
 int field_Win(const Field *field);
 
 /*-----------------------------------------*//**
- * @brief Print the field on the terminal
+ * @brief Print the field status to the file
  * @param field     Field to check
+ * @param file      Output file
  *//*-----------------------------------------*/
-void field_Print(const Field *field, FILE *file);
+void field_PrintStatus(const Field *field, FILE *file);
+
+/*-----------------------------------------*//**
+ * @brief Print the field ships to the file
+ * @param field     Field to check
+ * @param file      Output file
+ *//*-----------------------------------------*/
+void field_PrintShips(const Field *field, FILE *file);
 
 /*============================================================*/
 #endif

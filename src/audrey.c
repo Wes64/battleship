@@ -21,7 +21,7 @@ int audrey_Create(Audrey *audrey) {
     
     // Setup
     field_Clear(&audrey->field);
-    audrey->turns = 1;
+    audrey->turns = 0;
     
     int i = 0;
     while (audrey->sink_turn[i] = 0, i++ < N_SHIPS);
@@ -135,7 +135,13 @@ int audrey_PlayTurn(Audrey *audrey) {
 /*============================================================*
  * Game driver
  *============================================================*/
-int audrey_Play(Audrey *audrey) {
+int audrey_Play(Audrey *audrey, FILE *output) {
+    
+    // Print the ship configuration
+    if (output) {
+        fprintf(output, "===== Ship configuration =====\n");
+        field_PrintShips(&audrey->field, output);
+    }
     
     // Execute one game
     while (!field_Win(&audrey->field)) {
@@ -144,13 +150,24 @@ int audrey_Play(Audrey *audrey) {
             fprintf(stderr, "audrey_PlayTurn failed\n");
             return -1;
         }
-        fprintf(stdout, "Turn %d\n", audrey->turns);
-        field_Print(&audrey->field, stdout);
-        fprintf(stdout, "\n");
+        
+        // Output file
+        if (output) {
+            fprintf(output, "===== Turn %d status =====\n", audrey->turns);
+            field_PrintStatus(&audrey->field, output);
+        }
     }
     
-    // Offset for advanced turn
-    audrey->turns--;
+    // Print the final stats
+    if (output) {
+        fprintf(output, "===== Final stats =====\n");
+        fprintf(output, "Turns: %d\n", audrey->turns);
+        
+        Ship ship_id;
+        for (ship_id = 0; ship_id < N_SHIPS; ship_id++) {
+            fprintf(output, "%s sink turn: %d\n", ship_GetName(ship_id), audrey->sink_turn[ship_id]);
+        }
+    }
     
     // Success
     return 0;

@@ -6,6 +6,9 @@
 #ifndef _AUDREY_H_
 #define _AUDREY_H_
 
+// Standard library
+#include <stdio.h>      // FILE
+
 // This project
 #include "field.h"
 #include "ship.h"
@@ -43,7 +46,7 @@ int audrey_Create(Audrey *audrey);
  * @param audrey        Instance to play
  * @return 0 on success, else error code
  *//*-----------------------------------------*/
-int audrey_Play(Audrey *audrey);
+int audrey_Play(Audrey *audrey, FILE *output);
 
 /*-----------------------------------------*//**
  * @brief Audrey turn driver

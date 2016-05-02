@@ -13,9 +13,9 @@
 #include "ship.h"
 
 /*============================================================*
- * Printing field
+ * Printing field status
  *============================================================*/
-void field_Print(const Field *field, FILE *file) {
+void field_PrintStatus(const Field *field, FILE *file) {
     // Print the field
     int x, y;
     for (x=0; x < FIELD_SIZE; x++) {
@@ -40,6 +40,28 @@ void field_Print(const Field *field, FILE *file) {
              
              default:
                 fprintf(file, "?");
+                break;
+            }
+        }
+        fprintf(file, "\n");
+    }
+}
+
+/*============================================================*
+ * Printing field ships
+ *============================================================*/
+void field_PrintShips(const Field *field, FILE *file) {
+    // Print the field
+    int x, y;
+    for (x=0; x < FIELD_SIZE; x++) {
+        for (y=0; y < FIELD_SIZE; y++) {
+            switch (field->entry[x][y].ship) {
+            case EMPTY:
+                fprintf(file, ".");
+                break;
+             
+             default:
+                fprintf(file, "%d", field->entry[x][y].ship);
                 break;
             }
         }
@@ -169,7 +191,6 @@ int field_GetExtent(const Field *field, View dir, int x, int y, Status status) {
     
     if (!field_IsInBounds(field, x, y)) {
         // Error, not in bounds whatsoever
-        fprintf(stderr, "field_GetExtent: out of bounds\n");
         return -1;
     }
     
