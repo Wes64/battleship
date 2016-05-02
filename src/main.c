@@ -11,12 +11,12 @@
 #include <assert.h>     // assert
 
 // Windows (MinGW) / linux
-#include <unistd.h>     // mkdir
-
 #ifdef _WIN32
+#include <unistd.h>     // mkdir
 #define SEP "\\"
 
 #else   // !_WIN32
+#include <sys/stat.h>
 #define SEP "/"
 #define mkdir(dir) mkdir(dir, 0766)
 
