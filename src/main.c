@@ -10,13 +10,21 @@
 #include <errno.h>      // errno
 #include <assert.h>     // assert
 
-// Windows (MinGW) / linux
+// Cross-compiling
 #ifdef _WIN32
-#include <unistd.h>     // mkdir
 #define SEP "\\"
 
+#ifdef __MINGW32__
+#include <unistd.h>     // mkdir
+
+#else
+#include <windows.h>		// CreateDirectory
+#define mkdir(dir) CreateDirectory(dir, NULL)
+
+#endif // __MINGW32__
+
 #else   // !_WIN32
-#include <sys/stat.h>
+#include <sys/stat.h>   // mkdir
 #define SEP "/"
 #define mkdir(dir) mkdir(dir, 0766)
 
