@@ -1,0 +1,6 @@
+PROJECT_NAME = "Battleship"
+PROJECT_BRIEF = "Battleship AI testing program"
+OUTPUT_DIRECTORY = "doc"
+INPUT = src/
+FILE_PATTERNS = *.h *.c
+RECURSIVE = YES

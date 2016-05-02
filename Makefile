@@ -8,6 +8,7 @@
 EXECUTABLE := battleship.exe
 SOURCE_DIR := src
 OBJECT_DIR := build
+DOC_DIR := doc
 
 # Compiler options
 CC := gcc
@@ -46,9 +47,16 @@ $(OBJECT_DIR)/%.o: $(SOURCE_DIR)/%.c $(OBJECT_DIR)
 # Auto-generated dependencies
 -include $(DEPFILES)
 
+# Documentation
+.PHONY: doc
+doc: $(DOC_DIR)
+
+$(DOC_DIR):
+	doxygen Doxyfile
+
 # Clean up
 .PHONY: clean
 clean:
-	-rm -rf $(OBJECT_DIR) $(EXECUTABLE)
+	-rm -rf $(OBJECT_DIR) $(EXECUTABLE) $(DOC_DIR)
 
 #===============================================================
