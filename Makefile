@@ -15,7 +15,7 @@ GAME_LOG := log.csv
 # Compiler options
 CC := gcc
 CFLAGS := -g -O3 -Wall -MP -MMD
-LDFLAGS := -g
+LDFLAGS := -s
 
 # File locations
 CFILES := $(wildcard $(SOURCE_DIR)/*.c)
