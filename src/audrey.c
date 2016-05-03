@@ -39,11 +39,10 @@ int audrey_PlayTurn(Audrey *audrey) {
     // Get the maximum length remaining
     int ship_id = 0, length_min = INT_MAX;
     while (ship_id < N_SHIPS) {
-        if (audrey->field.ship_health[ship_id] > 0) {
-            int temp = ship_GetLength(ship_id);
+        int temp;
+        if ((temp = audrey->field.ship_health[ship_id++]) > 0) {
             length_min = (temp < length_min)? temp: length_min;
         }
-        ship_id++;
     }
     
     // Get probability maximum
@@ -52,18 +51,23 @@ int audrey_PlayTurn(Audrey *audrey) {
     int prob_y = -1;
     
     int x, y;
-    for (x=0; x<FIELD_SIZE; x++) {
-        for (y=0; y<FIELD_SIZE; y++) {
+    for (x=0; x < FIELD_SIZE; x++) {
+        for (y=0; y < FIELD_SIZE; y++) {
             // Already tried
             if (audrey->field.entry[x][y].status != UNTRIED) {
                 continue;
             }
 
-            // Calculate the probability here
+            // Calculate the probability here (all guaranteed >= 1 if UNTRIED)
             int view_left  = field_GetExtent(&audrey->field, LEFT,  x, y, UNTRIED);
             int view_right = field_GetExtent(&audrey->field, RIGHT, x, y, UNTRIED);
             int view_up    = field_GetExtent(&audrey->field, UP,    x, y, UNTRIED);
             int view_down  = field_GetExtent(&audrey->field, DOWN,  x, y, UNTRIED);
+            
+            assert(view_left >= 1);
+            assert(view_right >= 1);
+            assert(view_up >= 1);
+            assert(view_down >= 1);
 
             // Calculate the audrey->field hits nearby
             int near_horizontal = 0, near_vertical = 0, temp;
@@ -77,9 +81,12 @@ int audrey_PlayTurn(Audrey *audrey) {
             if ((temp = field_GetExtent(&audrey->field, UP, x, y-1, HIT)) > 0) {
                 near_vertical += temp;
             }
-            if ((temp = field_GetExtent(&audrey->field, DOWN, x, y-1, HIT)) > 0) {
+            if ((temp = field_GetExtent(&audrey->field, DOWN, x, y+1, HIT)) > 0) {
                 near_vertical += temp;
             }
+            
+            assert(near_horizontal >= 0);
+            assert(near_vertical >= 0);
             
             // Blocked
             int blocked_horizontal = (view_right+view_left-1) < (length_min-near_horizontal);
@@ -92,7 +99,7 @@ int audrey_PlayTurn(Audrey *audrey) {
                 prob = 0;
 
             } else {
-                prob = ((1+view_left)*(1+view_right)) + ((1+view_up)*(1+view_down));
+                prob = (view_left*view_right) + (view_up*view_down);
                 // Nearness weight
                 prob += (near_horizontal+near_vertical)*HIT_WEIGHT;
                 assert(prob > 0);

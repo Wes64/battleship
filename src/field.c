@@ -228,7 +228,7 @@ int field_GetExtent(const Field *field, View dir, int x, int y, Status status) {
     
     // Get horizontal distance to an obstruction
     int i=x, j=y;
-    while (field_IsInBounds(field, i, j) && status == field->entry[i][j].status) {
+    while (field_IsInBounds(field, i, j) && (status == field->entry[i][j].status)) {
         i += di;
         j += dj;
         distance++;
