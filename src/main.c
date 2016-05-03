@@ -181,7 +181,7 @@ int main(int argc, char *argv[]) {
         }
         
         // Close file
-        if (fclose(game)) {
+        if (game && fclose(game)) {
             fprintf(stderr, "fclose failed\n");
             return -1;
         }
