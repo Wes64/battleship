@@ -4,7 +4,7 @@
  *//*=========================================================*/
 
 // Standard library
-#include <stdio.h>      // fprintf, stderr, sscanf, FILE
+#include <stdio.h>      // fprintf, stderr, sscanf, FILE, remove
 #include <string.h>     // strcmp
 #include <stdlib.h>     // NULL
 #include <errno.h>      // errno
@@ -42,6 +42,7 @@
 static int num_games = 1;
 static FILE *log = NULL;
 static const char *dir_name = NULL;
+static int ceiling = 0;
 
 /*=========================================================*//**
  * @brief Print the help screen
@@ -50,10 +51,11 @@ void help(void) {
     // Output options and help
     printf(
         "Battleship usage:\n"
-        "-d <name>:\tWrite game information to the directory\n"
+        "-h:\t\tPrint the help screen\n"
         "-l <name>:\tWrite CSV data to the filename\n"
         "-n <int>:\tPlay this number of games\n"
-        "-h:\t\tPrint the help screen\n"
+        "-d <name>:\tWrite game information to the directory\n"
+        "-c <int>:\tPrint only games taking more than <int> turns\n"
     );
 }
 
@@ -96,6 +98,10 @@ int parse(int argc, char *argv[]) {
         } else if (!strcmp(keyword, "-h")) {
             // Print help
             return -1;
+            
+        } else if (!strcmp(keyword, "-c")) {
+            // Set the ceiling
+            ceiling = atoi(argv[i++]);
         
         } else {
             // Invalid keyword
@@ -164,6 +170,7 @@ int main(int argc, char *argv[]) {
             // Generate log file name
             sprintf(filename, "%s%sgame%d.log", dir_name, SEP, i);
             game = fopen(filename, "w");
+            
         } else {
             game = NULL;
         }
@@ -171,6 +178,20 @@ int main(int argc, char *argv[]) {
         if (audrey_Play(&player, game)) {
             fprintf(stderr, "audrey_Play failed\n");
             return -1;
+        }
+        
+        // Close file
+        if (fclose(game)) {
+            fprintf(stderr, "fclose failed\n");
+            return -1;
+        }
+        
+        // Remove the file if not enough turns
+        if (game && player.turns < ceiling) {
+            if (remove(filename)) {
+                perror("remove failed");
+                return -1;
+            }
         }
 
         // Log each game as csv
