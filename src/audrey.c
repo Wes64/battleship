@@ -66,31 +66,35 @@ int audrey_PlayTurn(Audrey *audrey) {
             int view_down  = field_GetExtent(&audrey->field, DOWN,  x, y, UNTRIED);
 
             // Calculate the audrey->field hits nearby
-            int nearby = 0, temp;
+            int near_horizontal = 0, near_vertical = 0, temp;
             
             if ((temp = field_GetExtent(&audrey->field, LEFT, x-1, y, HIT)) > 0) {
-                nearby += temp;
+                near_horizontal += temp;
             }
             if ((temp = field_GetExtent(&audrey->field, RIGHT, x+1, y, HIT)) > 0) {
-                nearby += temp;
+                near_horizontal += temp;
             }
             if ((temp = field_GetExtent(&audrey->field, UP, x, y-1, HIT)) > 0) {
-                nearby += temp;
+                near_vertical += temp;
             }
             if ((temp = field_GetExtent(&audrey->field, DOWN, x, y-1, HIT)) > 0) {
-                nearby += temp;
+                near_vertical += temp;
             }
+            
+            // Blocked
+            int blocked_horizontal = (view_right+view_left-1) < (length_min-near_horizontal);
+            int blocked_vertical = (view_up+view_down-1) < (length_min-near_vertical);
             
             // View is blocked when total distance is less than the length of the
             // smallest ship
             int prob;
-            if (((view_right+view_left) < (length_min-nearby)) && ((view_up+view_down) < (length_min-nearby))) {
+            if (blocked_horizontal && blocked_vertical) {
                 prob = 0;
 
             } else {
                 prob = ((1+view_left)*(1+view_right)) + ((1+view_up)*(1+view_down));
                 // Nearness weight
-                prob += nearby*HIT_WEIGHT;
+                prob += (near_horizontal+near_vertical)*HIT_WEIGHT;
                 assert(prob > 0);
             }
             assert(prob >= 0);
