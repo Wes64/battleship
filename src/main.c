@@ -105,7 +105,7 @@ int parse(int argc, char *argv[]) {
     }
     
     // Make the directory
-    if (mkdir(dir_name) == -1 && errno != EEXIST) {
+    if (dir_name && mkdir(dir_name) == -1 && errno != EEXIST) {
         fprintf(stderr, "Cannot make output directory\n");
         dir_name = NULL;
         return -1;
