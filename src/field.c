@@ -77,9 +77,31 @@ int view_GetVector(View dir, int *out_di, int *out_dj) {
     
     // Check for null pointers
     if (out_di && out_dj) {
-        *out_di = (dir == LEFT)? -1: (dir == RIGHT)? 1: 0;
-        *out_dj = (dir == UP)? -1: (dir == DOWN)? 1: 0;
-        assert(out_di || out_dj);
+        switch (dir) {
+        case LEFT:
+            *out_di = -1;
+            *out_dj = 0;
+            break;
+            
+        case RIGHT:
+            *out_di = 1;
+            *out_dj = 0;
+            break;
+            
+        case UP:
+            *out_di = 0;
+            *out_dj = -1;
+            break;
+        
+        case DOWN:
+            *out_di = 0;
+            *out_dj = 1;
+            break;
+            
+        default:
+            // Never happens
+            return -1;
+        }
         return 0;
     }
     
