@@ -179,6 +179,9 @@ int audrey_Play(Audrey *audrey, FILE *output) {
         for (ship_id = 0; ship_id < N_SHIPS; ship_id++) {
             fprintf(output, "%s sink turn: %d\n", ship_GetName(ship_id), audrey->sink_turn[ship_id]);
         }
+        
+        // Flush
+        fflush(output);
     }
     
     // Success
