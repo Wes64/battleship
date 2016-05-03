@@ -39,10 +39,14 @@ int audrey_PlayTurn(Audrey *audrey) {
     // Get the maximum length remaining
     int ship_id = 0, length_min = INT_MAX;
     while (ship_id < N_SHIPS) {
-        int temp;
-        if ((temp = audrey->field.ship_health[ship_id++]) > 0) {
+        int temp, length, health;
+        if ((health = audrey->field.ship_health[ship_id]) > 0) {
+            length = ship_GetLength(ship_id);
+            
+            temp = (length == health)? length: ((length - health)/2);
             length_min = (temp < length_min)? temp: length_min;
         }
+        ship_id++;
     }
     
     // Get probability maximum
