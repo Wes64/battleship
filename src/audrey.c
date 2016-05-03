@@ -23,8 +23,8 @@ int audrey_Create(Audrey *audrey) {
     field_Clear(&audrey->field);
     audrey->turns = 0;
     
-    int i = 0;
-    while (audrey->sink_turn[i] = 0, i++ < N_SHIPS);
+    int i;
+    for (i=0; i < N_SHIPS; audrey->sink_turn[i++] = 0);
     
     // Success
     return 0;
@@ -112,15 +112,6 @@ int audrey_PlayTurn(Audrey *audrey) {
         return -1;
     }
     assert(audrey->field.entry[prob_x][prob_y].status != UNTRIED);
-
-    int is_hit = audrey->field.entry[prob_x][prob_y].status == HIT;
-    
-    // Get the turn sunk for newly sunk ships
-    if (is_hit) {
-        Ship ship = audrey->field.entry[prob_x][prob_y].ship;
-        assert(ship >= 0);
-        audrey->sink_turn[ship] = audrey->turns;
-    }
     
     // Advance turn
     if (audrey->turns > TURN_MAX) {
@@ -128,6 +119,14 @@ int audrey_PlayTurn(Audrey *audrey) {
         return -1;
     }
     audrey->turns++;
+
+    // Get the turn sunk for newly sunk ships
+    if (audrey->field.entry[prob_x][prob_y].status == SUNK) {
+        Ship ship = audrey->field.entry[prob_x][prob_y].ship;
+        assert(ship >= 0);
+        
+        audrey->sink_turn[ship] = audrey->turns;
+    }
     
     return 0;
 }
