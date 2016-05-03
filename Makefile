@@ -9,6 +9,8 @@ EXECUTABLE := battleship.exe
 SOURCE_DIR := src
 OBJECT_DIR := build
 DOC_DIR := doc
+GAME_DIR := game
+GAME_LOG := log.csv
 
 # Compiler options
 CC := gcc
@@ -47,16 +49,28 @@ $(OBJECT_DIR)/%.o: $(SOURCE_DIR)/%.c $(OBJECT_DIR)
 # Auto-generated dependencies
 -include $(DEPFILES)
 
+#===============================================================
 # Documentation
+#===============================================================
 .PHONY: doc
 doc: $(DOC_DIR)
 
 $(DOC_DIR):
 	doxygen Doxyfile
+	
+#===============================================================
+# Tests
+#===============================================================
+.PHONY: test
+test: $(EXECUTABLE)
+	$(EXECUTABLE) -d $(GAME_DIR) -n 10
+	$(EXECUTABLE) -n 1000 -l $(GAME_LOG)
 
+#===============================================================
 # Clean up
+#===============================================================
 .PHONY: clean
 clean:
-	-rm -rf $(OBJECT_DIR) $(EXECUTABLE) $(DOC_DIR)
+	-rm -rf $(OBJECT_DIR) $(EXECUTABLE) $(DOC_DIR) $(GAME_DIR) $(GAME_LOG)
 
 #===============================================================
