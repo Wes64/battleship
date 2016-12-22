@@ -1,73 +1,66 @@
-/*=========================================================*//**
+/**********************************************************//**
  * @file main.c
- * @brief Main application for Battleship program
- *//*=========================================================*/
+ * @brief Main Battleship program
+ * @author Wes64
+ **************************************************************/
 
 // Standard library
+#include <stddef.h>     // NULL
 #include <stdio.h>      // fprintf, stderr, sscanf, FILE, remove
+#include <stdbool.h>    // bool
 #include <string.h>     // strcmp
-#include <stdlib.h>     // NULL
 #include <errno.h>      // errno
-#include <assert.h>     // assert
-
-// Cross-compiling
-#ifdef _WIN32
-#define SEP "\\"
-
-#ifdef __MINGW32__
-#include <unistd.h>     // mkdir
-
-#else
-#include <windows.h>		// CreateDirectory
-#define mkdir(dir) CreateDirectory(dir, NULL)
-
-#endif // __MINGW32__
-
-#else   // !_WIN32
-#include <sys/stat.h>   // mkdir
-#define SEP "/"
-#define mkdir(dir) mkdir(dir, 0766)
-
-#endif  // _WIN32
 
 // This project
-#include "audrey.h"
-#include "field.h"
+#include "debug.h"      // eprintf, assert
+#include "audrey.h"     // AUDREY
+#include "field.h"      // FIELD
 
-/*============================================================*
- * Main definitions
- *============================================================*/
+// Cross-platform mkdir
+#ifdef _WIN32
+#ifdef __MINGW32__
+#include <unistd.h>     // mkdir
+#else
+#include <windows.h>    // CreateDirectory
+#define mkdir(dir) CreateDirectory(dir, NULL)
+#endif
+#else
+#include <sys/stat.h>   // mkdir
+#define mkdir(dir) mkdir(dir, 0766)
+#endif
 
-// Configuration
+/// The number of games to play.
 static int num_games = 1;
+
+/// The output log file or NULL.
 static FILE *log = NULL;
+
+/// The directory name to store game files or NULL.
 static const char *dir_name = NULL;
+
+/// The maximum number of turns.
 static int ceiling = 0;
 
-/*=========================================================*//**
- * @brief Print the help screen
- *//*=========================================================*/
-void help(void) {
-    // Output options and help
-    printf(
-        "Battleship usage:\n"
-        "-h:\t\tPrint the help screen\n"
-        "-l <name>:\tWrite CSV data to the filename\n"
-        "-n <int>:\tPlay this number of games\n"
-        "-d <name>:\tWrite game information to the directory\n"
-        "-c <int>:\tPrint only games taking more than <int> turns\n"
-    );
+/**********************************************************//**
+ * @brief Print the help information to the terminal.
+ **************************************************************/
+static void help(void) {
+    printf("Battleship usage:\n");
+    printf("-h:\t\tPrint the help screen\n");
+    printf("-l <name>:\tWrite CSV data to the filename\n");
+    printf("-n <int>:\tPlay this number of games\n");
+    printf("-d <name>:\tWrite game information to the directory\n");
+    printf("-c <int>:\tPrint only games taking more than <int> turns\n");
 }
 
-/*=========================================================*//**
- * @brief Parser for command-line arguments
- * @param argc      Number of arguments
- * @param argv      Pointers to arguments
- * @return 0 on success, else error code
- *//*=========================================================*/
-int parse(int argc, char *argv[]) {
-    // Parse the arguments
-    
+/**********************************************************//**
+ * @brief Parser for the command-line arguments.
+ * @param argc: The number of command-line arguments.
+ * @param argv: Pointers to the arguments.
+ * @return Whether the parser succeeded.
+ **************************************************************/
+static bool parse(int argc, char *argv[]) {
+
     // Parse arguments
     int i = 1;
     while (i < argc) {
@@ -86,111 +79,89 @@ int parse(int argc, char *argv[]) {
             }
         
         } else if (!strcmp(keyword, "-l")) {
-            // Close the old log
+            // Set the log file
             if (log && !fclose(log)) {
-                fprintf(stderr, "-o: Failed to close file\n");
-                return -1;
+                eprintf("Failed to close file.\n");
+                return false;
             }
-            
-            // Open new log
             log = fopen(argv[i++], "w");
             
         } else if (!strcmp(keyword, "-h")) {
-            // Print help
-            return -1;
+            // Open the help screen
+            return false;
             
         } else if (!strcmp(keyword, "-c")) {
-            // Set the ceiling
+            // Set the turn ceiling
             ceiling = atoi(argv[i++]);
         
         } else {
-            // Invalid keyword
-            fprintf(stderr, "%s: Invalid keyword\n", keyword);
-            return -1;
+            // Bad keyword detection
+            eprintf("Invalid keyword: %s\n", keyword);
+            return false;
         }
     }
     
     // Make the directory
     if (dir_name && mkdir(dir_name) == -1 && errno != EEXIST) {
-        fprintf(stderr, "Cannot make output directory\n");
+        eprintf("Cannot make output directory\n");
         dir_name = NULL;
-        return -1;
+        return false;
     }
-    
-    // Success
-    return 0;
+    return true;
 }
 
-/*=========================================================*//**
- * @brief The main function for Battleship
- * @param argc      The number of arguments
- * @param argv      Pointers to argument strings
- * @return 0 on success, else error code
- *//*=========================================================*/
+/**********************************************************//**
+ * @brief Battleship main driver function.
+ * @param argc: The number of command-line arguments.
+ * @param argv: Pointers to the arguments.
+ * @return Exit code.
+ **************************************************************/
 int main(int argc, char *argv[]) {
-    // Main function
-    
+
     // Parse arguments
-    if (parse(argc, argv)) {
+    if (!parse(argc, argv)) {
         help();
-        return -1;
+        return EXIT_FAILURE;
     }
     
-    // Set up the log
+    // Set up the csv log
     if (log) {
         fprintf(log, "Turn,Carrier,Battleship,Submarine,Cruiser,Destroyer\n");
     }
     
     // Play games
-    Audrey player;
-    
-    int i = 0;
-    while (i++ < num_games) {
-        if (audrey_Create(&player)) {
-            fprintf(stderr, "audrey_Create failed\n");
-            return -1;
-        }
-
-        if (field_LoadRandom(&player.field)) {
-            fprintf(stderr, "field_LoadRandom failed\n");
-            return -1;
-        }
-
-        if (field_ReadyPlay(&player.field)) {
-            fprintf(stderr, "field_ReadyPlay failed\n");
-            return -1;
-        }
+    AUDREY player;
+    FILE *game = NULL;
+    const int BUF_SIZE = 1024;
+    char filename[BUF_SIZE];
+    for (int i = 0; i < num_games; i++) {
+        
+        // Initialize AI
+        audrey_Create(&player);
+        field_LoadRandom(&player.field);
         
         // Log individual game in the directory
-        FILE *game;
-        const int BUF_SIZE = 1024;
-        char filename[BUF_SIZE];
-        
         if (dir_name) {
-            // Generate log file name
-            sprintf(filename, "%s%sgame%d.log", dir_name, SEP, i);
+            sprintf(filename, "%s/game%d.log", dir_name, i);
             game = fopen(filename, "w");
-            
-        } else {
-            game = NULL;
         }
 
-        if (audrey_Play(&player, game)) {
-            fprintf(stderr, "audrey_Play failed\n");
-            return -1;
+        // Play the game
+        if (!audrey_Play(&player, game)) {
+            eprintf("Failed to play the game.\n");
+            return EXIT_FAILURE;
         }
         
         // Close file
-        if (game && fclose(game)) {
-            fprintf(stderr, "fclose failed\n");
-            return -1;
-        }
-        
-        // Remove the file if not enough turns
-        if (game && player.turns < ceiling) {
-            if (remove(filename)) {
-                perror("remove failed");
-                return -1;
+        if (game) {
+            if (fclose(game)) {
+                perror("fclose");
+                return EXIT_FAILURE;
+            } else if (player.turns < ceiling) {
+                if (remove(filename)) {
+                    perror("remove");
+                    return EXIT_FAILURE;
+                }
             }
         }
 
@@ -206,12 +177,9 @@ int main(int argc, char *argv[]) {
             );
         }
     }
-    
-    // Flush logged output
     fflush(log);
-
-    // Done
-    return 0;
+    fclose(log);
+    return EXIT_SUCCESS;
 }
 
 /*============================================================*/
