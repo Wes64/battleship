@@ -2,6 +2,8 @@
  * @file main.c
  * @brief Main Battleship program
  * @author Wes64
+ * @mainpage
+ * @htmlinclude main.html
  **************************************************************/
 
 // Standard library
@@ -16,7 +18,8 @@
 #include "audrey.h"     // AUDREY
 #include "field.h"      // FIELD
 
-// Cross-platform mkdir
+/// @def mkdir
+/// @brief Make a directory in a platform-independent manner.
 #ifdef _WIN32
 #ifdef __MINGW32__
 #include <unistd.h>     // mkdir
