@@ -1,76 +1,88 @@
-#===============================================================
-# battleship Makefile
-#===============================================================
+#===================================#
+# C Project Makefile
+#===================================#
 
-#===============================================================
-# Definitions
-#===============================================================
-EXECUTABLE := battleship.exe
-SOURCE_DIR := src
-OBJECT_DIR := build
-DOC_DIR := doc
-GAME_DIR := game
-GAME_LOG := log.csv
+#========= Debug mode setup ========#
+DEBUG := -DDEBUG -DVERBOSE -DTRACE
+NDEBUG := -UDEBUG -DVERBOSE -UTRACE
 
-# Compiler options
+#===== Compiler / linker setup =====#
 CC := gcc
-CFLAGS := -g -O3 -Wall -MP -MMD
-LDFLAGS := -s
+CFLAGS := -g -O3 -Wall -Wpedantic -Wextra -std=c99
+DFLAGS := -MP -MMD
+LFLAGS := -s -lm
+INCLUDE := 
+LIBRARY := 
 
-# File locations
-CFILES := $(wildcard $(SOURCE_DIR)/*.c)
-OBJFILES := $(addprefix $(OBJECT_DIR)/, $(subst $(SOURCE_DIR)/,,$(CFILES:.c=.o)))
-DEPFILES := $(OBJFILES:.o=.d)
+#======== Source code setup ========#
+SRC_DIR := src
+INCLUDE += -I$(SRC_DIR)
 
-#===============================================================
-# Dependencies
-#===============================================================
-INCLUDE := -Isrc
-LINK_LIBS :=
+# Source files
+CFILES := $(subst $(SRC_DIR)/main.c,,$(wildcard $(SRC_DIR)/*.c))
+HFILES := $(wildcard $(SRC_DIR)/*.h)
 
-#===============================================================
-# Rules
-#===============================================================
+# Important files
+MAKEFILE := Makefile
+IMPORTANT := $(MAKEFILE) README.md
+
+#=========== Build setup ===========#
+BUILD_DIR := build
+OFILES := $(CFILES:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
+DFILES := $(OFILES:%.o=%.d)
+
+# Main program to create
+EXECUTABLE := ./main.exe
+
+# Archive name to create
+ARCHIVE := ./project.tar.gz
+
+#========== Documentation ==========#
+DOC_DIR := doc
+DOXYFILE := Doxyfile
+DOXYGEN := $(DOXYFILE) main.html
+IMPORTANT += $(DOXYGEN)
+
+#============== Rules ==============#
+# Default - make the executable
 .PHONY: all
-all: $(EXECUTABLE)
+all: $(BUILD_DIR) $(EXECUTABLE) $(TESTS)
 
-# Make the executable program
-$(EXECUTABLE): $(OBJFILES)
-	$(CC) $(LDFLAGS) $(LINK_LIBS) $(OBJFILES) -o $@
-
-# Make build directory
-$(OBJECT_DIR):
+# Put all the .o files in the build directory
+$(BUILD_DIR):
 	-mkdir $@
+	-mkdir $(TEST_DIR)/$@
 
-# Make object files
-$(OBJECT_DIR)/%.o: $(SOURCE_DIR)/%.c $(OBJECT_DIR)
-	$(CC) $(CFLAGS) $(INCLUDE) -c -o $@ $<
+# Generate the release build files
+.SECONDARY: $(DFILES)
+.SECONDARY: $(OFILES)
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c $(MAKEFILE)
+	$(CC) $(CFLAGS) $(DFLAGS) $(DEBUG) $(INCLUDE) -c $< -o $@
 
-# Auto-generated dependencies
--include $(DEPFILES)
+# Automatic dependency files
+-include $(DFILES)
 
-#===============================================================
 # Documentation
-#===============================================================
-.PHONY: doc
-doc: $(DOC_DIR)
-
-$(DOC_DIR):
+.PHONY: documentation
+documentation: $(DOC_DIR)
+$(DOC_DIR): $(DOXYGEN) $(HFILES)
 	doxygen Doxyfile
-	
-#===============================================================
-# Tests
-#===============================================================
-.PHONY: test
-test: $(EXECUTABLE)
-	$(EXECUTABLE) -d $(GAME_DIR) -n 10
-	$(EXECUTABLE) -n 1000 -l $(GAME_LOG)
 
-#===============================================================
-# Clean up
-#===============================================================
+# Make executable for each driver
+$(EXECUTABLE): $(OFILES) $(BUILD_DIR)/main.o
+	$(CC) $^ $(LIBRARY) $(LFLAGS) -o $@
+
+#============== Clean ==============#
+# Clean up build files and executable
 .PHONY: clean
 clean:
-	-rm -rf $(OBJECT_DIR) $(EXECUTABLE) $(DOC_DIR) $(GAME_DIR) $(GAME_LOG)
+	-rm -rf $(BUILD_DIR) $(TEST_DIR)/$(BUILD_DIR) $(DOC_DIR) *.exe $(ARCHIVE)
+	
+#============= Archive =============#
+# Package all the files into a tar.
+.PHONY: archive
+archive: $(ARCHIVE)
+$(ARCHIVE): $(CFILES) $(HFILES) $(IMPORTANT)
+	tar -czvf $@ $^
 
-#===============================================================
+#===================================#
