@@ -1,6 +1,11 @@
-# Ignore the build directory
-build/
-
 # Ignore object files
 *.o
+*.d
 *.gch
+
+# Ignore compiled files
+*.exe
+*.dll
+
+# Ignore vim stuff
+*.swp
