@@ -1,20 +1,19 @@
-/*=========================================================*//**
+/**********************************************************//**
  * @file ship.c
  * @brief Implementation of Battleship ship methods
- *//*=========================================================*/
+ * @author Wes64
+ **************************************************************/
 
 // Standard library
-#include <stdlib.h>     // NULL
+#include <stddef.h> // NULL
 
 // This project
-#include "ship.h"
+#include "ship.h"   // SHIP
 
 /*============================================================*
  * Ship length
  *============================================================*/
-int ship_GetLength(Ship ship) {
-    // Get the ship length
-    
+int ship_GetLength(SHIP ship) {
     switch (ship) {
         case CARRIER:
             return 5;
@@ -33,17 +32,12 @@ int ship_GetLength(Ship ship) {
         default:
             return -1;
     }
-    
-    // Never get here
-    return -1;
 }
 
 /*============================================================*
  * Ship name
  *============================================================*/
-const char *ship_GetName(Ship ship) {
-    // Get the ship length
-    
+const char *ship_GetName(SHIP ship) {
     switch (ship) {
         case CARRIER:
             return "Carrier";
@@ -64,9 +58,6 @@ const char *ship_GetName(Ship ship) {
         default:
             return NULL;
     }
-    
-    // Never get here
-    return NULL;
 }
  
 /*============================================================*/

@@ -1,47 +1,41 @@
-/*=========================================================*//**
- * @file ship.c
+/**********************************************************//**
+ * @file ship.h
  * @brief Definition of Battleship ships
- *//*=========================================================*/
+ * @author Wes64
+ **************************************************************/
 
 #ifndef _SHIP_H_
 #define _SHIP_H_
 
-/*============================================================*
- * Ship definitions
- *============================================================*/
-
-/*-----------------------------------------*//**
- * @brief Enumeration of all ships
- *//*-----------------------------------------*/
+/**********************************************************//**
+ * @enum SHIP
+ * @brief All Battleship ship types.
+ **************************************************************/
 typedef enum {
-    EMPTY      = -1,
-    CARRIER    =  0,
-    BATTLESHIP =  1,
-    SUBMARINE  =  2,
-    CRUISER    =  3,
-    DESTROYER  =  4,
-} Ship;
+    EMPTY      = -1,    ///< No ship is present here.
+    CARRIER    =  0,    ///< The Carrier ship.
+    BATTLESHIP =  1,    ///< The Battleship ship.
+    SUBMARINE  =  2,    ///< The Submarine ship.
+    CRUISER    =  3,    ///< The cruiser ship.
+    DESTROYER  =  4,    ///< The destroyer ship.
+} SHIP;
 
-// Macros
+/// The total number of ships on the board.
 #define N_SHIPS 5
 
-/*============================================================*
- * Function definitions
- *============================================================*/
+/**********************************************************//**
+ * @brief Get the name of a ship.
+ * @param ship: The ship identity.
+ * @return The name of the ship, or NULL on failure.
+ **************************************************************/
+extern const char *ship_GetName(SHIP ship);
 
-/*-----------------------------------------*//**
- * @brief Get the name of a Ship
- * @param ship      The ship to name
- * @return The ship's name or NULL on failure
- *//*-----------------------------------------*/
-const char *ship_GetName(Ship ship);
-
-/*-----------------------------------------*//**
- * @brief Get the length of a Ship
- * @param ship      The ship to examine
- * @return The ship's length or -1 on failure
- *//*-----------------------------------------*/
-int ship_GetLength(Ship ship);
+/**********************************************************//**
+ * @brief Get the length of a ship.
+ * @param ship: The ship identity.
+ * @return The length of the ship or -1 on failure.
+ **************************************************************/
+extern int ship_GetLength(SHIP ship);
 
 /*============================================================*/
 #endif
