@@ -10,3 +10,7 @@
 *.dll binary
 *.exe binary
 *.out binary
+
+# Linguist overrides
+*.c linguist-language=C
+*.h linguist-language=C
