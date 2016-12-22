@@ -1,0 +1,12 @@
+# Sources
+*.c text
+*.h text
+
+# Compiled stuff
+*.o binary
+*.gch binary
+
+# Binaries
+*.dll binary
+*.exe binary
+*.out binary
