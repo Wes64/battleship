@@ -40,12 +40,12 @@ typedef struct {
 } ENTRY;
 
 /**********************************************************//**
- * @enum FIELD
+ * @struct FIELD
  * @brief Stores all game board information.
  **************************************************************/
 typedef struct {
-    ENTRY entry[FIELD_SIZE][FIELD_SIZE];
-    unsigned char ship_health[N_SHIPS];
+    ENTRY entry[FIELD_SIZE][FIELD_SIZE];    ///< Tile data
+    unsigned char ship_health[N_SHIPS];     ///< Health of the ships
 } FIELD;
 
 /**********************************************************//**
@@ -53,10 +53,10 @@ typedef struct {
  * @brief Direction of items on the field.
  **************************************************************/
 typedef enum {
-    LEFT,
-    RIGHT,
-    UP,
-    DOWN,
+    LEFT,   ///< We are looking to the left.
+    RIGHT,  ///< We are looking to the right.
+    UP,     ///< We are looking up.
+    DOWN,   ///< We are looking down.
 } VIEW;
 
 /**********************************************************//**
@@ -101,6 +101,7 @@ static inline bool field_IsInBounds(int x, int y) {
  * bounds or reaches an entry with a different status. If the
  * origin is out of bounds, -1 is returned.
  * @param field: The field to get information from.
+ * @param dir: The view direction to look in.
  * @param x: The x-coordinate of the origin.
  * @param y: The y-coordinate of the origin.
  * @param status: The status of squares to check.
