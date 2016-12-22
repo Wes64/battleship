@@ -1,25 +1,241 @@
-/*=========================================================*//**
+/**********************************************************//**
  * @file field.c
  * @brief Implementation of Battleship field
- *//*=========================================================*/
+ * @author Wes64
+ **************************************************************/
 
 // Standard library
 #include <stdio.h>      // fprintf, stderr, FILE
-#include <assert.h>     // assert
+#include <stdbool.h>    // bool
 #include <stdlib.h>     // rand
 
 // This project
-#include "field.h"
-#include "ship.h"
+#include "debug.h"      // eprintf, assert
+#include "field.h"      // FIELD
+#include "ship.h"       // SHIP
+
+/*============================================================*
+ * Clear a field
+ *============================================================*/
+void field_Clear(FIELD *field) {
+    
+    // Set all entries to null
+    for (int i = 0; i < FIELD_SIZE; i++) {
+        for (int j = 0; j < FIELD_SIZE; j++) {
+            field->entry[i][j].status = FREE;
+            field->entry[i][j].ship = EMPTY;
+        }
+    }
+    
+    // Set all ship health to empty
+    for (int i = 0; i < N_SHIPS; i++) {
+        field->ship_health[i] = -1;
+    }
+}
+
+/*============================================================*
+ * View vector
+ *============================================================*/
+static bool view_GetVector(VIEW dir, int *out_di, int *out_dj) {
+
+    switch (dir) {
+    case LEFT:
+        *out_di = -1;
+        *out_dj = 0;
+        break;
+        
+    case RIGHT:
+        *out_di = 1;
+        *out_dj = 0;
+        break;
+        
+    case UP:
+        *out_di = 0;
+        *out_dj = -1;
+        break;
+    
+    case DOWN:
+        *out_di = 0;
+        *out_dj = 1;
+        break;
+        
+    default:
+        return false;
+    }
+    return true;
+}
+
+/*============================================================*
+ * Fiend analysis
+ *============================================================*/
+int field_GetExtent(const FIELD *field, VIEW dir, int x, int y, STATUS status) {
+    
+    // Get the distance from x, y to an obstruction on the field
+    if (!field_IsInBounds(x, y)) {
+        // Error, not in bounds whatsoever
+        return -1;
+    }
+    
+    // Get the directions
+    int distance = 0;
+    int di=0, dj=0;
+    if (!view_GetVector(dir, &di, &dj)) {
+        eprintf("Invalid view direction.\n");
+        return -1;
+    }
+    
+    // Get horizontal distance to an obstruction
+    int i=x, j=y;
+    while (field_IsInBounds(i, j) && (status == field->entry[i][j].status)) {
+        i += di;
+        j += dj;
+        distance++;
+    }
+    assert(distance >= 0);
+    return distance;
+}
+
+/*============================================================*
+ * Place a ship on the field
+ *============================================================*/
+static bool field_PlaceShip(FIELD *field, VIEW view, int x, int y, SHIP ship_id) {
+    
+    // Put a ship on the field
+    int length = ship_GetLength(ship_id);
+    if (field_GetExtent(field, view, x, y, FREE) < length) {
+        // Can't place the ship here but not an error
+        return false;
+    }
+    
+    // Steps
+    int di=0, dj=0;
+    if (!view_GetVector(view, &di, &dj)) {
+        eprintf("Failed to get the view vector.\n");
+        return false;
+    }
+    
+    // Write ship into array
+    int i=x, j=y, distance=0;
+    while (distance < length) {
+        // Ensure valid coordinates are here
+        assert(field_IsInBounds(i, j));
+        if (field->entry[i][j].ship != EMPTY) {
+            eprintf("Ship already placed at the location.\n");
+            return false;
+        }
+        
+        // Write the ship element
+        field->entry[i][j].ship = ship_id;
+        field->entry[i][j].status = UNTRIED;
+        distance++;
+        
+        // Advance
+        i += di;
+        j += dj;
+    }
+    
+    // Write initial ship HP
+    field->ship_health[ship_id] = length;
+    return true;
+}
+
+/*============================================================*
+ * Random field loading
+ *============================================================*/
+void field_LoadRandom(FIELD *field) {
+
+    // Generate each ship
+    field_Clear(field);
+    for (SHIP ship_id = 0; ship_id < N_SHIPS; ship_id++) {
+        
+        // Get the ship length
+        int length = ship_GetLength(ship_id);
+        assert(length > 0);
+        
+        // Generate positions until we find one that works
+        // We can ban any position where the ship will extend
+        // off of the board with this anchor (assume the ship extends
+        // horizontally or vertically away from (0, 0))
+        int anchor = (FIELD_SIZE - length + 1);
+        assert(anchor >= 0);
+        assert(anchor < FIELD_SIZE);
+        
+        // Assume: no deadlock caused by ships here
+        VIEW view;
+        int x, y;
+        do {
+            // Generate random position
+            x = rand() % anchor;
+            y = rand() % anchor;
+            assert(field_IsInBounds(x, y));
+
+            // Randomly generate view
+            view = (rand() % 2)? RIGHT: DOWN;
+        } while (!field_PlaceShip(field, view, x, y, ship_id));
+    }
+    
+    // Make all statuses UNTRIED
+    for (int x = 0; x < FIELD_SIZE; x++) {
+        for (int y = 0; y < FIELD_SIZE; y++) {
+            field->entry[x][y].status = UNTRIED;
+        }
+    }
+}
+
+/*============================================================*
+ * Attack a square on the field
+ *============================================================*/
+STATUS field_Attack(FIELD *field, int x, int y) {
+    
+    // Attack the UNTRIED square
+    if (!field_IsInBounds(x, y)) {
+        eprintf("Attack out of bounds.\n");
+        return -1;
+    } else if (field->entry[x][y].status != UNTRIED) {
+        eprintf("Already attacked that location.\n");
+        return -1;
+    }
+    
+    // Apply attack
+    SHIP ship = field->entry[x][y].ship;
+    int is_hit = ship != EMPTY;
+    field->entry[x][y].status = (is_hit)? HIT: MISS;
+    
+    // Change HP and sink ship
+    if (is_hit) {
+        field->ship_health[ship]--;
+        assert(field->ship_health[ship] >= 0);
+    }
+    if (field->ship_health[ship] == 0) {
+        for (int x = 0; x < FIELD_SIZE; x++) {
+            for (int y = 0; y < FIELD_SIZE; y++) {
+                if (field->entry[x][y].ship == ship) {
+                    field->entry[x][y].status = SUNK;
+                }
+            }
+        }
+    }
+    return field->entry[x][y].status;
+}
+
+/*============================================================*
+ * Has the field been completed?
+ *============================================================*/
+bool field_Win(const FIELD *field) {
+    for (SHIP ship_id = 0; ship_id < N_SHIPS; ship_id++) {
+        if (field->ship_health[ship_id] > 0) {
+            return false;
+        }
+    }
+    return true;
+}
 
 /*============================================================*
  * Printing field status
  *============================================================*/
-void field_PrintStatus(const Field *field, FILE *file) {
-    // Print the field
-    int x, y;
-    for (x=0; x < FIELD_SIZE; x++) {
-        for (y=0; y < FIELD_SIZE; y++) {
+void field_PrintStatus(const FIELD *field, FILE *file) {
+    for (int x = 0; x < FIELD_SIZE; x++) {
+        for (int y = 0; y < FIELD_SIZE; y++) {
             switch (field->entry[x][y].status) {
             case UNTRIED:
                 fprintf(file, ".");
@@ -50,11 +266,9 @@ void field_PrintStatus(const Field *field, FILE *file) {
 /*============================================================*
  * Printing field ships
  *============================================================*/
-void field_PrintShips(const Field *field, FILE *file) {
-    // Print the field
-    int x, y;
-    for (x=0; x < FIELD_SIZE; x++) {
-        for (y=0; y < FIELD_SIZE; y++) {
+void field_PrintShips(const FIELD *field, FILE *file) {
+    for (int x = 0; x < FIELD_SIZE; x++) {
+        for (int y = 0; y < FIELD_SIZE; y++) {
             switch (field->entry[x][y].ship) {
             case EMPTY:
                 fprintf(file, ".");
@@ -69,278 +283,5 @@ void field_PrintShips(const Field *field, FILE *file) {
     }
 }
 
-/*============================================================*
- * View vector
- *============================================================*/
-int view_GetVector(View dir, int *out_di, int *out_dj) {
-    // Use out_di and out_dj as output parameters
-    
-    // Check for null pointers
-    if (out_di && out_dj) {
-        switch (dir) {
-        case LEFT:
-            *out_di = -1;
-            *out_dj = 0;
-            break;
-            
-        case RIGHT:
-            *out_di = 1;
-            *out_dj = 0;
-            break;
-            
-        case UP:
-            *out_di = 0;
-            *out_dj = -1;
-            break;
-        
-        case DOWN:
-            *out_di = 0;
-            *out_dj = 1;
-            break;
-            
-        default:
-            // Never happens
-            return -1;
-        }
-        return 0;
-    }
-    
-    // Failure
-    fprintf(stderr, "view_GetVector: no output parameters\n");
-    return -1;
-}
-
-/*============================================================*
- * Clear a field
- *============================================================*/
-int field_Clear(Field *field) {
-    // Wipe all squares in the field
-    if (!field) {
-        fprintf(stderr, "field_Clear: invalid field\n");
-        return -1;
-    }
-    
-    // Set all entries to null
-    int i, j;
-    for (i=0; i < FIELD_SIZE; i++) {
-        for (j=0; j < FIELD_SIZE; j++) {
-            // Initialize Entry
-            field->entry[i][j].status = FREE;
-            field->entry[i][j].ship = EMPTY;
-        }
-    }
-    
-    // Set all ship health to empty
-    for (i=0; i < N_SHIPS; field->ship_health[i++] = -1);
-    
-    // Success
-    return 0;
-}
-
-/*============================================================*
- * Random field loading
- *============================================================*/
-int field_LoadRandom(Field *field) {
-    // Use field as output parameter
-    
-    // Clear the field
-    int x, y;
-    field_Clear(field);
-    
-    // Generate each ship
-    Ship ship_id;
-    for (ship_id=0; (int)ship_id < N_SHIPS; ship_id++) {
-        
-        // Get the ship length
-        int length = ship_GetLength(ship_id);
-        
-        // Generate positions until we find one that works
-        // We can ban any position where the ship will extend
-        // off of the board with this anchor (assume the ship extends
-        // horizontally or vertically away from (0, 0))
-        int anchor = (FIELD_SIZE - length + 1);
-        
-        // Assume: no deadlock caused by ships here
-        View view;
-        do {
-            // Generate random position
-            x = rand() % anchor;
-            y = rand() % anchor;
-
-            // Randomly generate view
-            view = (rand() % 2)? RIGHT: DOWN;
-        } while (field_PlaceShip(field, view, x, y, ship_id));
-    }
-    
-    // All ships generated properly
-    return field_ReadyPlay(field);
-}
-
-/*============================================================*
- * Get ready to play on this field
- *============================================================*/
-int field_ReadyPlay(Field *field) {
-    // Ready the field for play
-    
-    // Make all statuses UNTRIED
-    int x, y;
-    for (x=0; x < FIELD_SIZE; x++) {
-        for (y=0; y < FIELD_SIZE; y++) {
-            // Use special FREE token here to denote if square occupied
-            field->entry[x][y].status = UNTRIED;
-        }
-    }
-    return 0;
-}
-
-/*============================================================*
- * Field bounds check
- *============================================================*/
-int field_IsInBounds(const Field *field, int x, int y) {
-    // Check if the coordinates are in bounds
-    // Don't need the field pointer, just included for uniformity
-    (void)field;
-    
-    // Bounds check
-    return ((0 <= x) && (x < FIELD_SIZE)) && ((0 <= y) && (y < FIELD_SIZE));
-}
-
-/*============================================================*
- * Field analysis
- *============================================================*/
-int field_GetExtent(const Field *field, View dir, int x, int y, Status status) {
-    // Get the distance from x, y to an obstruction on the field
-    
-    if (!field_IsInBounds(field, x, y)) {
-        // Error, not in bounds whatsoever
-        return -1;
-    }
-    
-    // Accumulator
-    int distance = 0;
-    
-    // Steps
-    int di, dj;
-    if (view_GetVector(dir, &di, &dj)) {
-        fprintf(stderr, "view_GetVector failed\n");
-        return -1;
-    }
-    
-    // Get horizontal distance to an obstruction
-    int i=x, j=y;
-    while (field_IsInBounds(field, i, j) && (status == field->entry[i][j].status)) {
-        i += di;
-        j += dj;
-        distance++;
-    }
-    
-    // Done (gurantee >= 0)
-    assert(distance >= 0);
-    return distance;
-}
-
-/*============================================================*
- * Place a ship on the field
- *============================================================*/
-int field_PlaceShip(Field *field, View view, int x, int y, Ship ship_id) {
-    // Put a ship on the field
-    
-    int length = ship_GetLength(ship_id);
-    if (field_GetExtent(field, view, x, y, FREE) < length) {
-        // Doesn't fit
-        return -1;
-    }
-    
-    // Steps
-    int di, dj;
-    if (view_GetVector(view, &di, &dj)) {
-        fprintf(stderr, "view_GetVector failed\n");
-        return -1;
-    }
-    
-    // Write ship into array
-    int i=x, j=y, distance=0;
-    while (distance < length) {
-        // Ensure valid coordinates are here
-        assert(field_IsInBounds(field, i, j));
-        assert(field->entry[i][j].ship == EMPTY);
-        
-        // Write the ship element
-        field->entry[i][j].ship = ship_id;
-        field->entry[i][j].status = UNTRIED;
-        distance++;
-        
-        // Advance
-        i += di;
-        j += dj;
-    }
-    
-    // Write initial ship HP
-    field->ship_health[ship_id] = length;
-    
-    // Success
-    return 0;
-}
-
-/*============================================================*
- * Attack a square on the field
- *============================================================*/
-int field_Attack(Field *field, int x, int y) {
-    // Attack the UNTRIED square
-    if (!field_IsInBounds(field, x, y)) {
-        // Out of bounds
-        fprintf(stderr, "field_Attack: out of bounds\n");
-        return -1;
-    } else if (field->entry[x][y].status != UNTRIED) {
-        // Already tried this square
-        fprintf(stderr, "field_Attack: double attack\n");
-        return -1;
-    }
-    
-    // Apply attack
-    Ship ship = field->entry[x][y].ship;
-    int is_hit = ship != EMPTY;
-    
-    field->entry[x][y].status = (is_hit)? HIT: MISS;
-    
-    // Change HP
-    if (is_hit) {
-        field->ship_health[ship]--;
-        assert(field->ship_health[ship] >= 0);
-    }
-
-    // Sink ship
-    if (field->ship_health[ship] == 0) {
-        int x, y;
-        for (x=0; x < FIELD_SIZE; x++) {
-            for (y=0; y < FIELD_SIZE; y++) {
-                if (field->entry[x][y].ship == ship) {
-                    field->entry[x][y].status = SUNK;
-                }
-            }
-        }
-    }
-    
-    return 0;
-}
-
-/*============================================================*
- * Field win
- *============================================================*/
-int field_Win(const Field *field) {
-    // Check win condition - return 0 on False, 1 on True
-    
-    // Get the maximum length remaining
-    int ship_id = 0;
-    while (ship_id < N_SHIPS) {
-        if (field->ship_health[ship_id] > 0) {
-            return 0;
-        }
-        ship_id++;
-    }
-    
-    // No ships remain
-    return 1;
-}
 
 /*============================================================*/
