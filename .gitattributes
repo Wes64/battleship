@@ -1,12 +1,16 @@
 # Sources
 *.c text
 *.h text
+*.cpp text
+*.hpp text
+*.inc text
 
 # Compiled stuff
 *.o binary
 *.gch binary
 
 # Binaries
+*.a binary
 *.dll binary
 *.exe binary
 *.out binary
@@ -14,3 +18,13 @@
 # Linguist overrides
 *.c linguist-language=C
 *.h linguist-language=C
+*.inc linguist-language=C
+*.cpp linguist-language=C++
+*.hpp linguist-language=C++
+
+# Linguist documentation
+*.html linguist-documentation
+*.dox linguist-documentation
+
+# Allegro
+lib/* linguist-vendored
