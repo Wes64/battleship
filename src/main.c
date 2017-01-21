@@ -2,8 +2,6 @@
  * @file main.c
  * @brief Main Battleship program
  * @author Wes64
- * @mainpage
- * @htmlinclude main.html
  **************************************************************/
 
 // Standard library
