@@ -4,5 +4,5 @@
  * page html layout.
  * @author Alec Shinomiya
  * @mainpage
- * @htmlinclude doc/main.html
+ * @htmlinclude doxygen/main.html
  **************************************************************/

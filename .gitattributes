@@ -23,6 +23,8 @@
 *.hpp linguist-language=C++
 
 # Linguist documentation
+docs/* linguist-documentation
+doxygen/* linguist-documentation
 *.html linguist-documentation
 *.dox linguist-documentation
 
