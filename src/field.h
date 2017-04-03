@@ -8,21 +8,42 @@
 #define _FIELD_H_
 
 // Standard library
-#include <stdio.h>      // FILE
 #include <stdbool.h>    // bool
+#include <stdio.h>      // FILE
 
-// This project
-#include "ship.h"       // SHIP
+/**********************************************************//**
+ * @enum SHIP
+ * @brief Enumerates all possuble battleships as well as the
+ * empty square.
+ **************************************************************/
+typedef enum {
+    EMPTY      = -1,    ///< No ship is present here.
+    CARRIER    =  0,    ///< The Carrier ship.
+    BATTLESHIP =  1,    ///< The Battleship ship.
+    SUBMARINE  =  2,    ///< The Submarine ship.
+    CRUISER    =  3,    ///< The cruiser ship.
+    DESTROYER  =  4,    ///< The destroyer ship.
+} SHIP;
 
-/// The dimension of the field
+/// The total number of ships possible on the board.
+#define N_SHIPS 5
+
+/// The size of the field (from standard Hasbro game).
 #define FIELD_SIZE 10
+
+/// The maximum number of turns possible.
+#define TURN_MAX (FIELD_SIZE*FIELD_SIZE)
+
+/// Denotes an invalid sink turn.
+#define TURN_INVALID -1
 
 /**********************************************************//**
  * @enum STATUS
  * @brief The status of each ENTRY.
  **************************************************************/
 typedef enum {
-    FREE,       ///< The entry is empty.
+	ERROR,		///< An error occurred (not a valid status).
+    FREE,       ///< The entry is empty (used for board placement).
     UNTRIED,    ///< The entry has not been examined yet.
     MISS,       ///< There is no ship present at the entry.
     HIT,        ///< We hit a ship at the entry.
@@ -44,13 +65,16 @@ typedef struct {
  * @brief Stores all game board information.
  **************************************************************/
 typedef struct {
-    ENTRY entry[FIELD_SIZE][FIELD_SIZE];    ///< Tile data
-    unsigned char ship_health[N_SHIPS];     ///< Health of the ships
+    ENTRY entry[FIELD_SIZE][FIELD_SIZE];    ///< Tile data.
+    int health[N_SHIPS];     				///< Health of the ships.
+    int turns;								///< Turns taken on the field.
+    int sinkTurn[N_SHIPS];				    ///< When the ship sank.
 } FIELD;
 
 /**********************************************************//**
  * @enum VIEW
- * @brief Direction of items on the field.
+ * @brief Enumerates all possible viewing directions from a 
+ * given tile on the field.
  **************************************************************/
 typedef enum {
     LEFT,   ///< We are looking to the left.
@@ -68,31 +92,47 @@ typedef enum {
 extern void field_Clear(FIELD *field);
 
 /**********************************************************//**
- * @brief Places all the ships randomly on the field.
- * @param field: The field to set up.
+ * @brief Get the length of the given ship.
+ * @param ship: The ship to check.
+ * @return The length of the ship.
  **************************************************************/
-extern void field_LoadRandom(FIELD *field);
-
-/**********************************************************//**
- * @brief Get the status at the location on the field.
- * @param field: The field to get information from.
- * @param x: The x-coordinate to get.
- * @param y: Te y-coordinate to get.
- * @return The status at the location.
- **************************************************************/
-static inline STATUS field_GetStatus(const FIELD *field, int x, int y) {
-    return field->entry[x][y].status;
-}
+extern int field_GetShipLength(SHIP ship);
 
 /**********************************************************//**
  * @brief Check if the coordinates are in bounds.
  * @param x: The x-coordinate to check.
- * @param y: Te y-coordinate to check.
+ * @param y: The y-coordinate to check.
  * @return Whether the location is in bounds.
  **************************************************************/
 static inline bool field_IsInBounds(int x, int y) {
     return ((0 <= x) && (x < FIELD_SIZE)) && ((0 <= y) && (y < FIELD_SIZE));
 }
+
+/**********************************************************//**
+ * @brief Get the public tile status at the given coordinates.
+ * @param x: The x-coordinate to check.
+ * @param y: The y-coordinate to check.
+ * @return The tile status.
+ **************************************************************/
+static inline STATUS field_GetStatus(const FIELD *field, int x, int y) {
+	return field->entry[x][y].status;
+}
+
+/**********************************************************//**
+ * @brief Get the current health of a ship.
+ * @param field: The field to check.
+ * @param ship: The ship to check.
+ * @return The current health of the ship.
+ **************************************************************/
+static inline int field_GetShipHealth(const FIELD *field, SHIP ship) {
+	return field->health[ship];
+}
+
+/**********************************************************//**
+ * @brief Places all the ships randomly on the field.
+ * @param field: The field to set up.
+ **************************************************************/
+extern void field_CreateRandom(FIELD *field);
 
 /**********************************************************//**
  * @brief Get the amount of equal entries in the VIEW
@@ -123,21 +163,27 @@ extern STATUS field_Attack(FIELD *field, int x, int y);
  * @param field: The field to check.
  * @return Whether the field is complete or not.
  **************************************************************/
-extern bool field_Win(const FIELD *field);
+extern bool field_IsWon(const FIELD *field);
 
 /**********************************************************//**
- * @brief Print the field statuses to the file.
- * @param field: The field to check.
- * @param file: The output file.
+ * @brief Get the turn count on the given field.
+ * @param field: The field in question.
+ * @return The number of turns taken on the given field.
  **************************************************************/
-void field_PrintStatus(const FIELD *field, FILE *file);
+static inline int field_GetTurnCount(const FIELD *field) {
+    return field->turns;
+}
 
 /**********************************************************//**
- * @brief Print the field ships to the file.
- * @param field: The field to check.
- * @param file: The output file.
+ * @brief Get the turn the given ship sank.
+ * @param field: The field data.
+ * @param ship: The identity of a ship.
+ * @return The number of turns taken to sink the ship, or
+ * NOT_SUNK if the ship hasn't sunk yet.
  **************************************************************/
-void field_PrintShips(const FIELD *field, FILE *file);
+static inline int field_GetSinkTurn(const FIELD *field, SHIP ship) {
+    return field->sinkTurn[ship];
+}
 
 /*============================================================*/
 #endif
