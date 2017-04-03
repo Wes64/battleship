@@ -17,6 +17,10 @@
 /**********************************************************//**
  * @brief Get the length of the longest ship remaining.
  * @param field: The field to check.
+ * @param full: Output parameter for the minimum length
+ * that is not next to any hits.
+ * @param partial: Output parameter for the minimum length
+ * that is next to some hits.
  * @return The longest ship remaining on the field.
  **************************************************************/
 static inline void ai_GetMinimumLength(const FIELD *field, int *full, int *partial) {

@@ -110,6 +110,7 @@ static inline bool field_IsInBounds(int x, int y) {
 
 /**********************************************************//**
  * @brief Get the public tile status at the given coordinates.
+ * @param field: The field in question.
  * @param x: The x-coordinate to check.
  * @param y: The y-coordinate to check.
  * @return The tile status.
