@@ -13,7 +13,7 @@
 
 // This project
 #include "debug.h"      // eprintf, assert
-#include "audrey.h"     // AUDREY
+#include "ai.h"     // AI
 #include "field.h"      // FIELD
 
 /// @def mkdir
@@ -131,14 +131,14 @@ int main(int argc, char *argv[]) {
     }
     
     // Play games
-    AUDREY player;
+    AI player;
     FILE *game = NULL;
     const int BUF_SIZE = 1024;
     char filename[BUF_SIZE];
     for (int i = 0; i < num_games; i++) {
         
         // Initialize AI
-        audrey_Create(&player);
+        ai_Create(&player);
         field_LoadRandom(&player.field);
         
         // Log individual game in the directory
@@ -148,7 +148,7 @@ int main(int argc, char *argv[]) {
         }
 
         // Play the game
-        if (!audrey_Play(&player, game)) {
+        if (!ai_Play(&player, game)) {
             eprintf("Failed to play the game.\n");
             return EXIT_FAILURE;
         }
