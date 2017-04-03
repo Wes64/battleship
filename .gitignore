@@ -21,6 +21,3 @@
 *.tar
 *.tar.gz
 *.zip
-
-# Ignore libraries
-lib
