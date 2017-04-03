@@ -6,52 +6,35 @@
 
 // Standard library
 #include <stddef.h>     // NULL
-#include <stdio.h>      // fprintf, stderr, sscanf, FILE, remove
 #include <stdbool.h>    // bool
+#include <stdlib.h>		// srand
+#include <stdio.h>      // FILE
+#include <time.h>		// time
 #include <string.h>     // strcmp
-#include <errno.h>      // errno
 
 // This project
 #include "debug.h"      // eprintf, assert
-#include "ai.h"     // AI
 #include "field.h"      // FIELD
-
-/// @def mkdir
-/// @brief Make a directory in a platform-independent manner.
-#ifdef _WIN32
-#ifdef __MINGW32__
-#include <unistd.h>     // mkdir
-#else
-#include <windows.h>    // CreateDirectory
-#define mkdir(dir) CreateDirectory(dir, NULL)
-#endif
-#else
-#include <sys/stat.h>   // mkdir
-#define mkdir(dir) mkdir(dir, 0766)
-#endif
+#include "ai.h"     	// AI
 
 /// The number of games to play.
-static int num_games = 1;
+static int NumberOfGames = 1;
+
+/// The output log filename.
+static const char *OutputFilename = NULL;
 
 /// The output log file or NULL.
-static FILE *log = NULL;
-
-/// The directory name to store game files or NULL.
-static const char *dir_name = NULL;
-
-/// The maximum number of turns.
-static int ceiling = 0;
+static FILE *OutputLog = NULL;
 
 /**********************************************************//**
  * @brief Print the help information to the terminal.
  **************************************************************/
-static void help(void) {
-    printf("Battleship usage:\n");
-    printf("-h:\t\tPrint the help screen\n");
-    printf("-l <name>:\tWrite CSV data to the filename\n");
-    printf("-n <int>:\tPlay this number of games\n");
-    printf("-d <name>:\tWrite game information to the directory\n");
-    printf("-c <int>:\tPrint only games taking more than <int> turns\n");
+static inline void help(int argc, char **argv) {
+	(void)argc;
+    printf("%s usage:\n", argv[0]);
+    printf("-h:        Print the help screen.\n");
+    printf("-o <name>: Write CSV data to the filename.\n");
+    printf("-n <int>:  Play this number of games.\n");
 }
 
 /**********************************************************//**
@@ -60,54 +43,31 @@ static void help(void) {
  * @param argv: Pointers to the arguments.
  * @return Whether the parser succeeded.
  **************************************************************/
-static bool parse(int argc, char *argv[]) {
-
+static inline bool parse(int argc, char *argv[]) {
     // Parse arguments
     int i = 1;
     while (i < argc) {
+		// Get the current keyword symbol
         const char *keyword = argv[i++];
-        
-        // Parse keyword meaning
-        if (!strcmp(keyword, "-d")) {
-            // Set the verbose directory flag
-            dir_name = argv[i++];
-        
-        } else if (!strcmp(keyword, "-n")) {
-            // Set the number of games
-            if (sscanf(argv[i++], "%d", &num_games) < 1) {
-                fprintf(stderr, "-l: Invalid argument\n");
-                return -1;
-            }
-        
-        } else if (!strcmp(keyword, "-l")) {
-            // Set the log file
-            if (log && !fclose(log)) {
-                eprintf("Failed to close file.\n");
-                return false;
-            }
-            log = fopen(argv[i++], "w");
-            
-        } else if (!strcmp(keyword, "-h")) {
-            // Open the help screen
-            return false;
-            
-        } else if (!strcmp(keyword, "-c")) {
-            // Set the turn ceiling
-            ceiling = atoi(argv[i++]);
-        
+        if (!strcmp(keyword, "-n")) {
+            NumberOfGames = atoi(argv[i++]);
+        } else if (!strcmp(keyword, "-o")) {
+            OutputFilename = argv[i++];
         } else {
-            // Bad keyword detection
-            eprintf("Invalid keyword: %s\n", keyword);
-            return false;
-        }
+			return false;
+		}
     }
     
-    // Make the directory
-    if (dir_name && mkdir(dir_name) == -1 && errno != EEXIST) {
-        eprintf("Cannot make output directory\n");
-        dir_name = NULL;
-        return false;
-    }
+    // Open the output file
+    if (OutputFilename != NULL) {
+		OutputLog = fopen(OutputFilename, "w");
+		if (!OutputLog) {
+			fprintf(stderr, "Failed to open \"%s\"\n", OutputFilename);
+			return false;
+		}
+	} else {
+		OutputLog = stdout;
+	}
     return true;
 }
 
@@ -118,68 +78,47 @@ static bool parse(int argc, char *argv[]) {
  * @return Exit code.
  **************************************************************/
 int main(int argc, char *argv[]) {
-
+	// Set up the random number generation
+	srand(time(NULL));
+	
     // Parse arguments
     if (!parse(argc, argv)) {
-        help();
+        help(argc, argv);
         return EXIT_FAILURE;
     }
     
-    // Set up the csv log
-    if (log) {
-        fprintf(log, "Turn,Carrier,Battleship,Submarine,Cruiser,Destroyer\n");
-    }
+    // Set up the csv header row
+    fprintf(OutputLog, "Turn,Carrier,Battleship,Submarine,Cruiser,Destroyer\n");
     
     // Play games
-    AI player;
-    FILE *game = NULL;
-    const int BUF_SIZE = 1024;
-    char filename[BUF_SIZE];
-    for (int i = 0; i < num_games; i++) {
-        
-        // Initialize AI
-        ai_Create(&player);
-        field_LoadRandom(&player.field);
-        
-        // Log individual game in the directory
-        if (dir_name) {
-            sprintf(filename, "%s/game%d.log", dir_name, i);
-            game = fopen(filename, "w");
-        }
+    FIELD field;
+    for (int i = 0; i < NumberOfGames; i++) {
+        // Initialize the field
+        field_Clear(&field);
+        field_CreateRandom(&field);
 
         // Play the game
-        if (!ai_Play(&player, game)) {
-            eprintf("Failed to play the game.\n");
-            return EXIT_FAILURE;
-        }
-        
-        // Close file
-        if (game) {
-            if (fclose(game)) {
-                perror("fclose");
-                return EXIT_FAILURE;
-            } else if (player.turns < ceiling) {
-                if (remove(filename)) {
-                    perror("remove");
-                    return EXIT_FAILURE;
-                }
-            }
-        }
+        while (!field_IsWon(&field)) {
+			if (!ai_PlayTurn(&field)) {
+				eprintf("Failed to play the game.\n");
+				return EXIT_FAILURE;
+			}
+		}
 
         // Log each game as csv
-        if (log) {
-            fprintf(log, "%d,%d,%d,%d,%d,%d\n",
-                player.turns,
-                player.sink_turn[CARRIER],
-                player.sink_turn[BATTLESHIP],
-                player.sink_turn[SUBMARINE],
-                player.sink_turn[CRUISER],
-                player.sink_turn[DESTROYER]
-            );
-        }
+		fprintf(OutputLog, "%d,%d,%d,%d,%d,%d\n",
+			field.turns,
+			field.sinkTurn[CARRIER],
+			field.sinkTurn[BATTLESHIP],
+			field.sinkTurn[SUBMARINE],
+			field.sinkTurn[CRUISER],
+			field.sinkTurn[DESTROYER]
+		);
     }
-    fflush(log);
-    fclose(log);
+    
+    // Clean up file
+    fflush(OutputLog);
+    fclose(OutputLog);
     return EXIT_SUCCESS;
 }
 
