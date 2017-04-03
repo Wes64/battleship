@@ -3,7 +3,7 @@ DOXYFILE_ENCODING = UTF-8
 
 # Project information
 PROJECT_NAME = "Battleship"
-PROJECT_NUMBER = 0.2
+PROJECT_NUMBER = 1.0
 PROJECT_BRIEF = "Battleship AI testing program"
 
 # Output directory configuration
@@ -15,14 +15,14 @@ HTML_OUTPUT = "docs"
 # Input files
 EXAMPLE_PATH = .
 INPUT = src/ doxygen/
-FILE_PATTERNS = *.dox *.h main.c
+FILE_PATTERNS = *.dox *.h *.c *.inc
 RECURSIVE = YES
 
 # Generated files
 GENERATE_LATEX = NO
 GENERATE_HTML = YES
 HTML_FILE_EXTENSION = .html
-SHORT_NAMES = YES
+HTML_EXTRA_STYLESHEET = doxygen/style.css
 
 # Webpage display information
 ALPHABETICAL_INDEX = NO
@@ -30,6 +30,15 @@ SEARCHENGINE = NO
 DISABLE_INDEX = YES
 SHOW_FILES = YES
 STRIP_CODE_COMMENTS = NO
+HTML_TIMESTAMP = YES
+HTML_DYNAMIC_SECTIONS = NO
+SHORT_NAMES = YES
+SOURCE_BROWSER = NO
+VERBATIM_HEADERS = NO
+
+# HTML colors
+HTML_COLORSTYLE_HUE = 120
+HTML_COLORSTYLE_SAT = 50
 
 # Extraction
 OPTIMIZE_OUTPUT_FOR_C = YES
