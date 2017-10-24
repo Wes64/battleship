@@ -37,11 +37,11 @@ DFILES := $(OFILES:%.o=%.d)
 # Main program to create
 EXECUTABLE := ./battleship.exe
 
-#========== libwes64 Setup =========#
+#========== libshared Setup =========#
 LIB_DIR := lib
-LIBWES64_DIR := $(LIB_DIR)/libwes64
-INCLUDE += -I$(LIBWES64_DIR)/include
-LIBRARY += -L$(LIBWES64_DIR)/bin -lwes64
+LIBSHARED_DIR := $(LIB_DIR)/libshared
+INCLUDE += -I$(LIBSHARED_DIR)/include
+LIBRARY += -L$(LIBSHARED_DIR)/bin -lshared
 
 #========== Documentation ==========#
 # Doxygen documentation setup
@@ -52,12 +52,12 @@ DOXFILES := $(wildcard doxygen/*)
 #============== Rules ==============#
 # Default - make the executable
 .PHONY: all
-all: $(BUILD_DIR) libwes64 $(EXECUTABLE) $(TESTS)
+all: $(BUILD_DIR) libshared $(EXECUTABLE) $(TESTS)
 
-# Make libwes64
-.PHONY: libwes64
-libwes64:
-	$(MAKE) -C $(LIBWES64_DIR) default
+# Make libshared
+.PHONY: libshared
+libshared:
+	$(MAKE) -C $(LIBSHARED_DIR) default
 
 # Put all the .o files in the build directory
 $(BUILD_DIR):
@@ -87,5 +87,6 @@ $(EXECUTABLE): $(OFILES) $(BUILD_DIR)/main.o
 .PHONY: clean
 clean:
 	-rm -rf $(BUILD_DIR) $(EXECUTABLE)
+	$(MAKE) -C $(LIBSHARED_DIR) clean
 
 #===================================#
