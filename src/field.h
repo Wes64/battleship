@@ -1,7 +1,7 @@
 /**********************************************************//**
  * @file field.h
  * @brief Definition of Battleship field
- * @author Wes64
+ * @author Rena Shinomiya
  **************************************************************/
 
 #ifndef _FIELD_H_

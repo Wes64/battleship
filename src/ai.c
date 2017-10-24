@@ -1,7 +1,7 @@
 /**********************************************************//**
  * @file ai.c
  * @brief Implementation of Battleship AI
- * @author Wes64
+ * @author Rena Shinomiya
  **************************************************************/
 
 // Standard library

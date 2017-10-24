@@ -1,7 +1,7 @@
 /**********************************************************//**
  * @file main.c
  * @brief Main Battleship program
- * @author Wes64
+ * @author Rena Shinomiya
  **************************************************************/
 
 // Standard library

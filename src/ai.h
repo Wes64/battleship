@@ -1,7 +1,7 @@
 /**********************************************************//**
  * @file ai.h
  * @brief Definition of Battleship AI
- * @author Wes64
+ * @author Rena Shinomiya
  **************************************************************/
 
 #ifndef _AI_H_

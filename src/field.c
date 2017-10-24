@@ -1,7 +1,7 @@
 /**********************************************************//**
  * @file field.c
  * @brief Implementation of Battleship field
- * @author Wes64
+ * @author Rena Shinomiya
  **************************************************************/
 
 // Standard library
