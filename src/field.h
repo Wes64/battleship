@@ -42,7 +42,7 @@ typedef enum {
  * @brief The status of each ENTRY.
  **************************************************************/
 typedef enum {
-	ERROR,		///< An error occurred (not a valid status).
+    ERROR,      ///< An error occurred (not a valid status).
     FREE,       ///< The entry is empty (used for board placement).
     UNTRIED,    ///< The entry has not been examined yet.
     MISS,       ///< There is no ship present at the entry.
@@ -66,14 +66,14 @@ typedef struct {
  **************************************************************/
 typedef struct {
     ENTRY entry[FIELD_SIZE][FIELD_SIZE];    ///< Tile data.
-    int health[N_SHIPS];     				///< Health of the ships.
-    int turns;								///< Turns taken on the field.
-    int sinkTurn[N_SHIPS];				    ///< When the ship sank.
+    int health[N_SHIPS];                    ///< Health of the ships.
+    int turns;                              ///< Turns taken on the field.
+    int sinkTurn[N_SHIPS];                  ///< When the ship sank.
 } FIELD;
 
 /**********************************************************//**
  * @enum VIEW
- * @brief Enumerates all possible viewing directions from a 
+ * @brief Enumerates all possible viewing directions from a
  * given tile on the field.
  **************************************************************/
 typedef enum {
@@ -116,7 +116,7 @@ static inline bool field_IsInBounds(int x, int y) {
  * @return The tile status.
  **************************************************************/
 static inline STATUS field_GetStatus(const FIELD *field, int x, int y) {
-	return field->entry[x][y].status;
+    return field->entry[x][y].status;
 }
 
 /**********************************************************//**
@@ -126,7 +126,7 @@ static inline STATUS field_GetStatus(const FIELD *field, int x, int y) {
  * @return The current health of the ship.
  **************************************************************/
 static inline int field_GetShipHealth(const FIELD *field, SHIP ship) {
-	return field->health[ship];
+    return field->health[ship];
 }
 
 /**********************************************************//**

@@ -17,11 +17,11 @@
  * @brief Enumerates the lengths of each valid ship.
  **************************************************************/
 static const int SHIP_LENGTH[N_SHIPS] = {
-	[CARRIER]    = 5,
-	[BATTLESHIP] = 4,
-	[SUBMARINE]  = 3,
-	[CRUISER]    = 3,
-	[DESTROYER]  = 2,
+    [CARRIER]    = 5,
+    [BATTLESHIP] = 4,
+    [SUBMARINE]  = 3,
+    [CRUISER]    = 3,
+    [DESTROYER]  = 2,
 };
 
 /**********************************************************//**
@@ -57,7 +57,7 @@ static inline void view_GetVector(VIEW view, int *di, int *dj) {
  * Ship length
  *============================================================*/
 int field_GetShipLength(SHIP ship) {
-	return SHIP_LENGTH[ship];
+    return SHIP_LENGTH[ship];
 }
 
 /*============================================================*
@@ -91,13 +91,13 @@ int field_GetExtent(const FIELD *field, VIEW dir, int x, int y, STATUS status) {
         // Error, not in bounds whatsoever
         return 0;
     }
-    
+
     // Get the directions
     int distance = 0;
     int di = 0;
     int dj = 0;
     view_GetVector(dir, &di, &dj);
-    
+
     // Get horizontal distance to an obstruction (tile without the same status)
     int i = x;
     int j = y;
@@ -124,12 +124,12 @@ static bool field_PlaceShip(FIELD *field, VIEW view, int x, int y, SHIP ship) {
         // Can't place the ship here but not an error
         return false;
     }
-    
+
     // Get the viewing vector
     int di = 0;
     int dj = 0;
     view_GetVector(view, &di, &dj);
-    
+
     // Write ship into array
     int i = x;
     int j = y;
@@ -140,7 +140,7 @@ static bool field_PlaceShip(FIELD *field, VIEW view, int x, int y, SHIP ship) {
             eprintf("Ship erroneously placed at the location.\n");
             return false;
         }
-        
+
         // Write the ship element
         field->entry[i][j].ship = ship;
         field->entry[i][j].status = UNTRIED;
@@ -148,7 +148,7 @@ static bool field_PlaceShip(FIELD *field, VIEW view, int x, int y, SHIP ship) {
         i += di;
         j += dj;
     }
-    
+
     // Write initial ship HP
     field->health[ship] = length;
     return true;
@@ -161,13 +161,13 @@ void field_CreateRandom(FIELD *field) {
     for (SHIP ship = 0; ship < N_SHIPS; ship++) {
         // Get the ship length
         int length = SHIP_LENGTH[ship];
-        
+
         // Generate positions until we find one that works
         // We can ban any position where the ship will extend
         // off of the board with this anchor (assume the ship extends
         // horizontally or vertically away from (0, 0))
         int anchor = (FIELD_SIZE - length + 1);
-        
+
         // Assume: no deadlock caused by ships here
         VIEW view;
         int x;
@@ -179,7 +179,7 @@ void field_CreateRandom(FIELD *field) {
             view = (rand() % 2)? RIGHT: DOWN;
         } while (!field_PlaceShip(field, view, x, y, ship));
     }
-    
+
     // Make all statuses UNTRIED, finalizing the field
     for (int x = 0; x < FIELD_SIZE; x++) {
         for (int y = 0; y < FIELD_SIZE; y++) {
@@ -200,39 +200,39 @@ STATUS field_Attack(FIELD *field, int x, int y) {
         eprintf("Already attacked that location.\n");
         return ERROR;
     }
-    
+
     // Register the turn
     field->turns++;
-    
+
     // Apply attack
     SHIP ship = field->entry[x][y].ship;
     if (ship != EMPTY) {
-		// The attack struck a ship
-		field->entry[x][y].status = HIT;
+        // The attack struck a ship
+        field->entry[x][y].status = HIT;
         field->health[ship]--;
-        
+
         // Check if the ship sank. If it did, mark the
         // entire ship with SUNK status.
-		if (field->health[ship] <= 0) {
-			for (int x = 0; x < FIELD_SIZE; x++) {
-				for (int y = 0; y < FIELD_SIZE; y++) {
-					if (field->entry[x][y].ship == ship) {
-						field->entry[x][y].status = SUNK;
-					}
-				}
-			}
-			// Register the sink turn.
-			field->sinkTurn[ship] = field->turns;
-			return SUNK;
-		} else {
-			// The ship didn't sink
-			return HIT;
-		}
-	} else {
-		// The attack missed any ship
-		field->entry[x][y].status = MISS;
-		return MISS;
-	}
+        if (field->health[ship] <= 0) {
+            for (int x = 0; x < FIELD_SIZE; x++) {
+                for (int y = 0; y < FIELD_SIZE; y++) {
+                    if (field->entry[x][y].ship == ship) {
+                        field->entry[x][y].status = SUNK;
+                    }
+                }
+            }
+            // Register the sink turn.
+            field->sinkTurn[ship] = field->turns;
+            return SUNK;
+        } else {
+            // The ship didn't sink
+            return HIT;
+        }
+    } else {
+        // The attack missed any ship
+        field->entry[x][y].status = MISS;
+        return MISS;
+    }
 }
 
 /*============================================================*
