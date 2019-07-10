@@ -1,3 +1,0 @@
-[submodule "lib/libshared"]
-	path = lib/libshared
-	url = https://github.com/xyRena/libshared.git
