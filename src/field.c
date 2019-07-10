@@ -190,8 +190,22 @@ void field_CreateRandom(FIELD *field) {
         do {
             // Pick if the ship is horizontal or vertical.
             view = (rand() % 2)? RIGHT: DOWN;
-            x = rand()%anchor;
-            y = rand()%anchor;
+            // Generate random position for the view.
+            switch (view) {
+            case RIGHT:
+                x = rand()%anchor;
+                y = rand()%FIELD_SIZE;
+                break;
+            
+            case DOWN:
+                x = rand()%FIELD_SIZE;
+                y = rand()%anchor;
+                break;
+            
+            default:
+                eprintf("This can't happen.\n");
+                break;
+            }
         } while (!field_PlaceShip(field, view, x, y, ship));
     }
 
