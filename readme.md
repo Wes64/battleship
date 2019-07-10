@@ -1,5 +1,5 @@
 # Battleship AI
-This project uses an AI hereustic to play the game Battleship.
+This project uses an AI heuristic to play the game Battleship.
 
 ## Support
 This project obeys the gnu99 standard. It can be compiled with `gcc` or `MinGW`, of version `4.8.1` and above.
@@ -19,12 +19,12 @@ The game information file `-g` shows each choice made on each turn for every gam
 ### Ships
 The game is played on a 10x10 grid with five ships: the carrier (length 5), battleship (length 4), submarine and cruiser (length 3), and destroyer (length 2).
 
-### Hereustic
-The AI always seeks to pick the middlemost untried tile. If `X` represents a known miss and `?` represents an unknown in this situation: `X???X`, the AI will pick the middle `?`. This hereustic is applied in both dimensions of the game board, since ships can be horizontal or vertical.
+### Heuristic
+The AI always seeks to pick the middlemost untried tile. If `X` represents a known miss and `?` represents an unknown in this situation: `X???X`, the AI will pick the middle `?`. This heuristic is applied in both dimensions of the game board, since ships can be horizontal or vertical.
 
-This hereustic exists because all ships have a length greater than 1; hence, we are always looking to fragment up space as much as possible using our guesses. The benefit is illustrated as such: consider the following situation: `X???X`. If the destroyer (length 2) is horizontal in this space, it must occupy the middle tile. However, if we pick the left or right `?` tile, we could miss. Since the goal is to win in as few turns as possible, we want to know if the destroyer is anywhere in the unknown space as soon as possible.
+This heuristic exists because all ships have a length greater than 1; hence, we are always looking to fragment up space as much as possible using our guesses. The benefit is illustrated as such: consider the following situation: `X???X`. If the destroyer (length 2) is horizontal in this space, it must occupy the middle tile. However, if we pick the left or right `?` tile, we could miss. Since the goal is to win in as few turns as possible, we want to know if the destroyer is anywhere in the unknown space as soon as possible.
 
-This hereustic requires us to know a "longest ship remaining" length. If the longest ship left is length 3, we can ignore all the unknowns in the following field:
+This heuristic requires us to know a "longest ship remaining" length. If the longest ship left is length 3, we can ignore all the unknowns in the following field:
 ```
 XXXX
 X??X
