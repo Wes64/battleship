@@ -37,12 +37,6 @@ DFILES := $(OFILES:%.o=%.d)
 # Main program to create
 EXECUTABLE := ./battleship.exe
 
-#========== libshared Setup =========#
-LIB_DIR := lib
-LIBSHARED_DIR := $(LIB_DIR)/libshared
-INCLUDE += -I$(LIBSHARED_DIR)/include
-LIBRARY += -L$(LIBSHARED_DIR)/bin -lshared
-
 #========== Documentation ==========#
 # Doxygen documentation setup
 DOC_DIR := docs
@@ -52,12 +46,7 @@ DOXFILES := $(wildcard doxygen/*)
 #============== Rules ==============#
 # Default - make the executable
 .PHONY: all
-all: $(BUILD_DIR) libshared $(EXECUTABLE) $(TESTS)
-
-# Make libshared
-.PHONY: libshared
-libshared:
-	$(MAKE) -C $(LIBSHARED_DIR) default
+all: $(BUILD_DIR) $(EXECUTABLE) $(TESTS)
 
 # Put all the .o files in the build directory
 $(BUILD_DIR):
@@ -87,6 +76,5 @@ $(EXECUTABLE): $(OFILES) $(BUILD_DIR)/main.o
 .PHONY: clean
 clean:
 	-rm -rf $(BUILD_DIR) $(EXECUTABLE)
-	$(MAKE) -C $(LIBSHARED_DIR) clean
 
 #===================================#
