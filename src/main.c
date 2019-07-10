@@ -1,22 +1,24 @@
 /**********************************************************//**
  * @file main.c
- * @brief Main Battleship program
+ * @brief Controls the envionment and execution of battleship
+ * games. Runs a certain number of games, and outputs the game
+ * data to a file.
  * @author Rena Shinomiya
+ * @date April 21, 2016
  **************************************************************/
 
-// Standard library
-#include <stddef.h>     // NULL
-#include <stdbool.h>    // bool
-#include <stdlib.h>     // srand
-#include <stdio.h>      // FILE
-#include <time.h>       // time
-#include <string.h>     // strcmp
+#include <stdbool.h> 
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h> 
 
-// This project
-#include "debug.h"      // eprintf, assert
-#include "field.h"      // FIELD
-#include "ai.h"         // AI
+#include "ai.h"
+#include "debug.h"
+#include "field.h"
 
+/**************************************************************/
 /// The number of games to play.
 static int NumberOfGames = 1;
 
@@ -28,6 +30,8 @@ static FILE *OutputLog = NULL;
 
 /**********************************************************//**
  * @brief Print the help information to the terminal.
+ * @param argc: Number of command-line arguments in argv.
+ * @param argv: Command-line arguments from the terminal.
  **************************************************************/
 static inline void help(int argc, char **argv) {
     (void)argc;
@@ -38,10 +42,15 @@ static inline void help(int argc, char **argv) {
 }
 
 /**********************************************************//**
- * @brief Parser for the command-line arguments.
- * @param argc: The number of command-line arguments.
- * @param argv: Pointers to the arguments.
- * @return Whether the parser succeeded.
+ * @brief Reads information from the command-line arguments and
+ * stores it in static variables; used for configuration.
+ * stores it in static variables; used for configuration.
+ * @param argc: Number of command-line arguments in argv.
+ * @param argv: Command-line arguments from the terminal.
+ * @return True if no invalid keywords were encountered.
+ * @detail Use -h to print the help screen; -n <int> to play
+ * <int> number of games, and -o <name> to write to <name>
+ * file.
  **************************************************************/
 static inline bool parse(int argc, char *argv[]) {
     // Parse arguments
@@ -54,11 +63,13 @@ static inline bool parse(int argc, char *argv[]) {
         } else if (!strcmp(keyword, "-o")) {
             OutputFilename = argv[i++];
         } else {
+            // If -h is found, returns false so we print help
+            // (this is a shortcut).
             return false;
         }
     }
 
-    // Open the output file
+    // Open the output file, or configure stdout.
     if (OutputFilename != NULL) {
         OutputLog = fopen(OutputFilename, "w");
         if (!OutputLog) {
@@ -78,26 +89,23 @@ static inline bool parse(int argc, char *argv[]) {
  * @return Exit code.
  **************************************************************/
 int main(int argc, char *argv[]) {
-    // Set up the random number generation
-    srand(time(NULL));
-
-    // Parse arguments
+    // If we can't parse the command-line arguments, print the help
+    // screen and then stop.
     if (!parse(argc, argv)) {
         help(argc, argv);
         return EXIT_FAILURE;
     }
 
-    // Set up the csv header row
+    // Set stuff up before we start loggong games.,..
+    srand(time(NULL));
     fprintf(OutputLog, "Turn,Carrier,Battleship,Submarine,Cruiser,Destroyer\n");
-
-    // Play games
-    FIELD field;
-    for (int i = 0; i < NumberOfGames; i++) {
+    for (int i=0; i<NumberOfGames; i++) {
         // Initialize the field
+        FIELD field;
         field_Clear(&field);
         field_CreateRandom(&field);
 
-        // Play the game
+        // Have the AI take turns until the field is won.
         while (!field_IsWon(&field)) {
             if (!ai_PlayTurn(&field)) {
                 eprintf("Failed to play the game.\n");
@@ -105,7 +113,7 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        // Log each game as csv
+        // Log each game as csv output
         fprintf(OutputLog, "%d,%d,%d,%d,%d,%d\n",
             field.turns,
             field.sinkTurn[CARRIER],
@@ -122,4 +130,4 @@ int main(int argc, char *argv[]) {
     return EXIT_SUCCESS;
 }
 
-/*============================================================*/
+/**************************************************************/

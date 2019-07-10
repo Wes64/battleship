@@ -1,15 +1,33 @@
 /**********************************************************//**
  * @file field.h
- * @brief Definition of Battleship field
+ * @brief Defines a generic battleship field that can be
+ * interacted with by an agent (user or AI).
  * @author Rena Shinomiya
+ * @date April 28, 2016
  **************************************************************/
 
 #ifndef _FIELD_H_
 #define _FIELD_H_
 
-// Standard library
-#include <stdbool.h>    // bool
-#include <stdio.h>      // FILE
+#include <stdbool.h>
+#include <stdio.h>
+
+/**************************************************************/
+/// @brief The total number of ships possible on the board
+/// (from the standard Hasbro game). We have one carrier, one
+/// battleship, one submarine, one cruiser, and one destroyer.
+#define N_SHIPS 5
+
+/// @brief The size of the field square in tiles (from standard
+/// Hasbro game).
+#define FIELD_SIZE 10
+
+/// @brief The maximum number of turns possible (the same as the
+/// number of different tiles on the field).
+#define TURN_MAX (FIELD_SIZE*FIELD_SIZE)
+
+/// @brief Denotes an invalid sink turn.
+#define TURN_INVALID -1
 
 /**********************************************************//**
  * @enum SHIP
@@ -17,47 +35,41 @@
  * empty square.
  **************************************************************/
 typedef enum {
-    EMPTY      = -1,    ///< No ship is present here.
-    CARRIER    =  0,    ///< The Carrier ship.
-    BATTLESHIP =  1,    ///< The Battleship ship.
-    SUBMARINE  =  2,    ///< The Submarine ship.
-    CRUISER    =  3,    ///< The cruiser ship.
-    DESTROYER  =  4,    ///< The destroyer ship.
+    EMPTY      = -1,
+    CARRIER    =  0,
+    BATTLESHIP =  1,
+    SUBMARINE  =  2,
+    CRUISER    =  3,
+    DESTROYER  =  4,
 } SHIP;
-
-/// The total number of ships possible on the board.
-#define N_SHIPS 5
-
-/// The size of the field (from standard Hasbro game).
-#define FIELD_SIZE 10
-
-/// The maximum number of turns possible.
-#define TURN_MAX (FIELD_SIZE*FIELD_SIZE)
-
-/// Denotes an invalid sink turn.
-#define TURN_INVALID -1
 
 /**********************************************************//**
  * @enum STATUS
- * @brief The status of each ENTRY.
+ * @brief Describes what we know about any ENTRY.
  **************************************************************/
 typedef enum {
-    ERROR,      ///< An error occurred (not a valid status).
-    FREE,       ///< The entry is empty (used for board placement).
-    UNTRIED,    ///< The entry has not been examined yet.
-    MISS,       ///< There is no ship present at the entry.
-    HIT,        ///< We hit a ship at the entry.
-    SUNK,       ///< We sank a ship at the entry.
+    /// An error occurred (not a valid status).
+    ERROR,
+    /// @brief The entry is empty (used for board placement to
+    /// tell if a ship has been placed here yet).
+    FREE,
+    /// The entry has not been examined by an agent yet.
+    UNTRIED,
+    /// There is certainly no ship present at the entry.
+    MISS,
+    /// We hit a ship at the entry.
+    HIT,
+    /// We sank the ship at the entry.
+    SUNK,
 } STATUS;
 
 /**********************************************************//**
  * @struct ENTRY
- * @brief Stores the hit status and ship at each tile of the
- * game board.
+ * @brief Stores data for one tile on the game field.
  **************************************************************/
 typedef struct {
-    STATUS status;  ///< The status of the tile.
-    SHIP ship;      ///< The ship present at the location.
+    STATUS status;
+    SHIP ship;
 } ENTRY;
 
 /**********************************************************//**
@@ -65,38 +77,28 @@ typedef struct {
  * @brief Stores all game board information.
  **************************************************************/
 typedef struct {
-    ENTRY entry[FIELD_SIZE][FIELD_SIZE];    ///< Tile data.
-    int health[N_SHIPS];                    ///< Health of the ships.
-    int turns;                              ///< Turns taken on the field.
-    int sinkTurn[N_SHIPS];                  ///< When the ship sank.
+    ENTRY entry[FIELD_SIZE][FIELD_SIZE];
+    /// The health of each ship (health 0 means the ship sank).
+    int health[N_SHIPS];
+    /// Turns taken on the field by whichever agent is playing.
+    int turns;
+    /// @brief Administrative logging data for when a ship sank.
+    /// It will be TURN_INVALID if the ship didn't sink yet.
+    int sinkTurn[N_SHIPS];
 } FIELD;
 
 /**********************************************************//**
  * @enum VIEW
  * @brief Enumerates all possible viewing directions from a
- * given tile on the field.
+ * given tile on the field. We can look left, right, up, and
+ * down (although special cases happen on edge tiles).
  **************************************************************/
 typedef enum {
-    LEFT,   ///< We are looking to the left.
-    RIGHT,  ///< We are looking to the right.
-    UP,     ///< We are looking up.
-    DOWN,   ///< We are looking down.
+    LEFT,
+    RIGHT,
+    UP,
+    DOWN,
 } VIEW;
-
-/**********************************************************//**
- * @brief Clear all items on the field. It is necessary to
- * clear a field before setting it up. This initializes the
- * field.
- * @param field: The field to initialize.
- **************************************************************/
-extern void field_Clear(FIELD *field);
-
-/**********************************************************//**
- * @brief Get the length of the given ship.
- * @param ship: The ship to check.
- * @return The length of the ship.
- **************************************************************/
-extern int field_GetShipLength(SHIP ship);
 
 /**********************************************************//**
  * @brief Check if the coordinates are in bounds.
@@ -130,43 +132,6 @@ static inline int field_GetShipHealth(const FIELD *field, SHIP ship) {
 }
 
 /**********************************************************//**
- * @brief Places all the ships randomly on the field.
- * @param field: The field to set up.
- **************************************************************/
-extern void field_CreateRandom(FIELD *field);
-
-/**********************************************************//**
- * @brief Get the amount of equal entries in the VIEW
- * direction from the origin point. This goes along the unit
- * vector of the direction from (x, y) until it is out of
- * bounds or reaches an entry with a different status. If the
- * origin is out of bounds, -1 is returned.
- * @param field: The field to get information from.
- * @param dir: The view direction to look in.
- * @param x: The x-coordinate of the origin.
- * @param y: The y-coordinate of the origin.
- * @param status: The status of squares to check.
- * @return The distance travelled, or -1 on failure.
- **************************************************************/
-extern int field_GetExtent(const FIELD *field, VIEW dir, int x, int y, STATUS status);
-
-/**********************************************************//**
- * @brief Make an attack on the field.
- * @param field: The field to attack.
- * @param x: The x-coordinate to attack.
- * @param y: The y-coordinate to attack.
- * @return The result of the attack or -1 on failure.
- **************************************************************/
-extern STATUS field_Attack(FIELD *field, int x, int y);
-
-/**********************************************************//**
- * @brief Check if the field has been won.
- * @param field: The field to check.
- * @return Whether the field is complete or not.
- **************************************************************/
-extern bool field_IsWon(const FIELD *field);
-
-/**********************************************************//**
  * @brief Get the turn count on the given field.
  * @param field: The field in question.
  * @return The number of turns taken on the given field.
@@ -186,5 +151,13 @@ static inline int field_GetSinkTurn(const FIELD *field, SHIP ship) {
     return field->sinkTurn[ship];
 }
 
-/*============================================================*/
-#endif
+/**************************************************************/
+extern void field_Clear(FIELD *field);
+extern int field_GetShipLength(SHIP ship);
+extern void field_CreateRandom(FIELD *field);
+extern int field_GetExtent(const FIELD *field, VIEW dir, int x, int y, STATUS status);
+extern STATUS field_Attack(FIELD *field, int x, int y);
+extern bool field_IsWon(const FIELD *field);
+
+/**************************************************************/
+#endif // _FIELD_H_

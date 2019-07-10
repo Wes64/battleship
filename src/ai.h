@@ -2,17 +2,16 @@
  * @file ai.h
  * @brief Definition of Battleship AI
  * @author Rena Shinomiya
+ * @date April 3, 2017
  **************************************************************/
 
 #ifndef _AI_H_
 #define _AI_H_
 
-// Standard library
-#include <stdbool.h>    // bool
-#include <stdio.h>      // FILE
+#include <stdbool.h>
+#include <stdio.h>
 
-// This project
-#include "field.h"      // FIELD
+#include "field.h"
 
 /**********************************************************//**
  * @brief Play one turn of a game.
@@ -21,5 +20,5 @@
  **************************************************************/
 extern bool ai_PlayTurn(FIELD *field);
 
-/*============================================================*/
-#endif
+/**************************************************************/
+#endif // _AI_H_
