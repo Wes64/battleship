@@ -80,6 +80,10 @@ void field_Clear(FIELD *field) {
     for (int i = 0; i < N_SHIPS; i++) {
         field->sinkTurn[i] = TURN_INVALID;
     }
+    
+    // Reset last attack
+    field->lastAttackX = -1;
+    field->lastAttackY = -1;
 }
 
 /**********************************************************//**
@@ -236,6 +240,8 @@ STATUS field_Attack(FIELD *field, int x, int y) {
 
     // Register the turn and attack
     field->turns++;
+    field->lastAttackX = x;
+    field->lastAttackY = y;
     SHIP ship = field->entry[x][y].ship;
     if (ship != EMPTY) {
         // The attack struck a ship
@@ -278,6 +284,36 @@ bool field_IsWon(const FIELD *field) {
         }
     }
     return true;
+}
+
+/**********************************************************//**
+ * @brief Prints the field using ASCII characters.
+ * @param field: Field to output.
+ * @param file:  Open file to output the field into.
+ **************************************************************/
+void field_Print(const FIELD *field, FILE *file) {
+    for (int y=0; y<FIELD_SIZE; y++) {
+        for (int x=0; x<FIELD_SIZE; x++) {
+            bool isLastAttack = x==field->lastAttackX && y==field->lastAttackY;
+            fprintf(file, isLastAttack? "[": " ");
+            switch (field->entry[x][y].status) {
+            case HIT:
+            case SUNK:
+                fprintf(file, "O");
+                break;
+            
+            case MISS:
+                fprintf(file, "X");
+                break;
+            
+            default:
+                fprintf(file, "?");
+                break;
+            }
+            fprintf(file, isLastAttack? "]": " ");
+        }
+        fprintf(file, "\n");
+    }
 }
 
 /**************************************************************/

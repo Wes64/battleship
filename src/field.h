@@ -85,6 +85,9 @@ typedef struct {
     /// @brief Administrative logging data for when a ship sank.
     /// It will be TURN_INVALID if the ship didn't sink yet.
     int sinkTurn[N_SHIPS];
+    // Where the last attack was.
+    int lastAttackX;
+    int lastAttackY;
 } FIELD;
 
 /**********************************************************//**
@@ -158,6 +161,7 @@ extern void field_CreateRandom(FIELD *field);
 extern int field_GetExtent(const FIELD *field, VIEW dir, int x, int y, STATUS status);
 extern STATUS field_Attack(FIELD *field, int x, int y);
 extern bool field_IsWon(const FIELD *field);
+extern void field_Print(const FIELD *field, FILE *file);
 
 /**************************************************************/
 #endif // _FIELD_H_

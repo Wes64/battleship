@@ -22,11 +22,11 @@
 /// The number of games to play.
 static int NumberOfGames = 1;
 
-/// The output log filename.
-static const char *OutputFilename = NULL;
-
 /// The output log file or NULL.
 static FILE *OutputLog = NULL;
+
+/// The game data log file, or NULL.
+static FILE *GameLog = NULL;
 
 /**********************************************************//**
  * @brief Print the help information to the terminal.
@@ -39,6 +39,7 @@ static inline void help(int argc, char **argv) {
     printf("-h:        Print the help screen.\n");
     printf("-o <name>: Write CSV data to the filename.\n");
     printf("-n <int>:  Play this number of games.\n");
+    printf("-g <name>: Write game data to the filename.\n");
 }
 
 /**********************************************************//**
@@ -53,6 +54,9 @@ static inline void help(int argc, char **argv) {
  * file.
  **************************************************************/
 static inline bool parse(int argc, char *argv[]) {
+    const char *outputFilename = NULL;
+    const char *gameFilename = NULL;
+    
     // Parse arguments
     int i = 1;
     while (i < argc) {
@@ -61,7 +65,9 @@ static inline bool parse(int argc, char *argv[]) {
         if (!strcmp(keyword, "-n")) {
             NumberOfGames = atoi(argv[i++]);
         } else if (!strcmp(keyword, "-o")) {
-            OutputFilename = argv[i++];
+            outputFilename = argv[i++];
+        } else if (!strcmp(keyword, "-g")) {
+            gameFilename = argv[i++];
         } else {
             // If -h is found, returns false so we print help
             // (this is a shortcut).
@@ -70,14 +76,25 @@ static inline bool parse(int argc, char *argv[]) {
     }
 
     // Open the output file, or configure stdout.
-    if (OutputFilename != NULL) {
-        OutputLog = fopen(OutputFilename, "w");
+    if (outputFilename != NULL) {
+        OutputLog = fopen(outputFilename, "w");
         if (!OutputLog) {
-            fprintf(stderr, "Failed to open \"%s\"\n", OutputFilename);
+            fprintf(stderr, "Failed to open \"%s\"\n", outputFilename);
             return false;
         }
     } else {
         OutputLog = stdout;
+    }
+    
+    // Open the game log, or configure stdout.
+    if (gameFilename != NULL) {
+        GameLog = fopen(gameFilename, "w");
+        if (!GameLog) {
+            fprintf(stderr, "Failed to open \"%s\"\n", gameFilename);
+            return false;
+        }
+    } else {
+        GameLog = stdout;
     }
     return true;
 }
@@ -96,7 +113,7 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    // Set stuff up before we start loggong games.,..
+    // Set stuff up before we start logging games.,..
     srand(time(NULL));
     fprintf(OutputLog, "Turn,Carrier,Battleship,Submarine,Cruiser,Destroyer\n");
     for (int i=0; i<NumberOfGames; i++) {
@@ -104,6 +121,9 @@ int main(int argc, char *argv[]) {
         FIELD field;
         field_Clear(&field);
         field_CreateRandom(&field);
+        
+        // Write each game to the game log.
+        fprintf(GameLog, "# Game %d\n", i+1);
 
         // Have the AI take turns until the field is won.
         while (!field_IsWon(&field)) {
@@ -111,6 +131,11 @@ int main(int argc, char *argv[]) {
                 eprintf("Failed to play the game.\n");
                 return EXIT_FAILURE;
             }
+            
+            // Write each turn to the game log.
+            fprintf(GameLog, "## Turn %d\n", field.turns);
+            field_Print(&field, GameLog);
+            fprintf(GameLog, "\n");
         }
 
         // Log each game as csv output
@@ -127,6 +152,8 @@ int main(int argc, char *argv[]) {
     // Clean up file
     fflush(OutputLog);
     fclose(OutputLog);
+    fflush(GameLog);
+    fclose(GameLog);
     return EXIT_SUCCESS;
 }
 
